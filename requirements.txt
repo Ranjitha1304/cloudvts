@@ -9,4 +9,5 @@ whitenoise
 Pillow
 gunicorn
 PyJWT
+cryptography
 
