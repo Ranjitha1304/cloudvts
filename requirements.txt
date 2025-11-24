@@ -8,3 +8,5 @@ python-dotenv
 whitenoise
 Pillow
 gunicorn
+PyJWT
+
