@@ -1,0 +1,320 @@
+<!-- templates/admin_base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel - Vetri Cloud Storage{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 10%, #b87ef2 70%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Mobile menu alignment fixes for admin */
+@media (max-width: 768px) {
+    /* Hide desktop navigation on mobile */
+    .flex.items-center.space-x-6 {
+        display: none;
+    }
+    
+    /* Mobile menu toggle button */
+    .mobile-menu-toggle {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        z-index: 1001;
+        position: relative;
+    }
+    
+    .mobile-menu-toggle span {
+        width: 20px;
+        height: 2px;
+        background: white;
+        margin: 2px 0;
+        transition: 0.3s;
+    }
+    
+    /* Mobile menu dropdown */
+    .mobile-menu {
+        position: fixed;
+        top: 64px; /* Height of the nav bar */
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        display: none;
+        flex-direction: column;
+        padding: 1rem;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .mobile-menu.active {
+        display: flex;
+    }
+    
+    .mobile-menu a {
+        color: #333;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin: 0.25rem 0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .mobile-menu a:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+    
+    /* Show mobile toggle */
+    .mobile-toggle-container {
+        display: flex !important;
+        z-index: 1001;
+        position: relative;
+    }
+
+    /* Ensure nav has proper z-index */
+    .nav-glass {
+        position: relative;
+        z-index: 1000;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 640px) {
+    .flex.items-center.space-x-3 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .font-bold.text-xl {
+        font-size: 1.1rem;
+    }
+}
+
+/* Desktop styles - ensure original layout */
+@media (min-width: 769px) {
+    .mobile-toggle-container {
+        display: none !important;
+    }
+    
+    .mobile-menu {
+        display: none !important;
+    }
+}
+
+    </style>
+</head>
+<body class="bg-gray-50">
+    {% if user.is_authenticated %}
+<nav class="nav-glass text-white shadow-xl">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-3">
+                <div class="floating">
+                    <i class="fas fa-crown text-2xl text-yellow-400"></i>
+                </div>
+                <span class="font-bold text-xl bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
+                    Vetri Cloud Admin
+                </span>
+            </div>
+            
+            <!-- Desktop Navigation -->
+<!-- Desktop Navigation -->
+<div class="flex items-center space-x-6">
+    <span class="text-blue-100">
+        <i class="fas fa-user-shield mr-2"></i>
+        {{ user.username }} (Admin)
+    </span>
+    <a href="{% url 'dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'dashboard' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="{% url 'admin_dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'admin_dashboard' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+    </a>
+    
+    <a href="{% url 'all_users' %}" 
+       class="{% if request.resolver_match.url_name == 'all_users' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </a>
+
+    <a href="{% url 'admin_plans_list' %}" 
+       class="{% if 'admin_plan' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_plans_list' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+        <i class="fas fa-crown"></i>
+        <span>Plan Management</span>
+    </a>
+
+    <a href="{% url 'logout' %}" 
+       class="text-blue-100 hover:text-white transition-colors duration-200 flex items-center space-x-1 pb-1">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+</div>
+
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-toggle-container hidden">
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Dropdown -->
+<!-- Mobile Menu Dropdown -->
+<div class="mobile-menu">
+    <span class="text-gray-600 px-4 py-2 text-sm">
+        <i class="fas fa-user-shield mr-2"></i>
+        {{ user.username }} (Admin)
+    </span>
+    <a href="{% url 'dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'dashboard' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="{% url 'admin_dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'admin_dashboard' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+    </a>
+    <a href="{% url 'all_users' %}" 
+       class="{% if request.resolver_match.url_name == 'all_users' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </a>
+    <a href="{% url 'admin_plans_list' %}" 
+       class="{% if 'admin_plan' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_plans_list' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+        <i class="fas fa-crown"></i>
+        <span>Plan Management</span>
+    </a>
+    <a href="{% url 'logout' %}" class="text-gray-700">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+</div>
+    </div>
+</nav>
+    {% endif %}
+
+    <main class="{% if user.is_authenticated %}py-8{% endif %}">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const types = {
+                'success': 'bg-green-500 text-white',
+                'error': 'bg-red-500 text-white', 
+                'warning': 'bg-yellow-500 text-white',
+                'info': 'bg-blue-500 text-white'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `notification glass-card rounded-xl p-4 ${types[type]} shadow-lg`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.getElementById('notificationContainer').appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Mobile menu toggle function
+function toggleMobileMenu() {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const toggleButton = document.querySelector('.mobile-menu-toggle');
+    
+    mobileMenu.classList.toggle('active');
+    toggleButton.classList.toggle('active');
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const toggleButton = document.querySelector('.mobile-menu-toggle');
+    
+    if (mobileMenu && mobileMenu.classList.contains('active') && 
+        !mobileMenu.contains(event.target) && 
+        !toggleButton.contains(event.target)) {
+        mobileMenu.classList.remove('active');
+        toggleButton.classList.remove('active');
+    }
+});
+
+    </script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

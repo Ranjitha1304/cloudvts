@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ plan.name }}</h1>
+        <p class="text-xl text-gray-700 max-w-2xl mx-auto">
+            Get complete details about the {{ plan.name }} and all its features.
+        </p>
+    </div>
+
+    <!-- Main Plan Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <!-- Plan Card (Left) -->
+        <div class="lg:col-span-1">
+            <div class="glass-card rounded-3xl p-8 border-2 border-purple-500 shadow-2xl transform hover:scale-105 transition-all duration-500">
+                {% if plan.plan_type == 'pro' %}
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                        MOST POPULAR
+                    </span>
+                </div>
+                {% endif %}
+                
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ plan.name }}</h3>
+                    <div class="flex items-baseline justify-center mb-4">
+                        <span class="text-4xl font-bold text-gray-900">₹{{ plan.price }}</span>
+                        <span class="text-gray-700 ml-2">/year</span>
+                    </div>
+                    <p class="text-lg font-semibold text-gray-800 mb-2">
+                        {{ plan.max_storage_size|filesizeformat }} Storage
+                    </p>
+                </div>
+
+                <ul class="space-y-3 mb-8">
+                    {% for feature in plan.features %}
+                    <li class="flex items-center text-gray-800">
+                        <i class="fas fa-check-circle text-green-800 mr-3"></i>
+                        <span class="font-medium">{{ feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Buy This Plan Button -->
+<!-- Buy This Plan Button -->
+<div class="text-center">
+    {% if user_is_authenticated %}
+        <!-- For logged-in users -->
+        {% if user_plan.id == plan.id %}
+            <!-- Current Plan -->
+            <button class="w-full bg-green-500 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg cursor-default block text-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                Current Plan
+            </button>
+            <p class="text-xs text-gray-600 mt-3 font-medium">You're currently on this plan</p>
+        {% elif user_plan.price < plan.price %}
+            <!-- Upgrade Plan -->
+            <a href="{% url 'create_checkout_session' plan.id %}" 
+               class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
+                      text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl 
+                      transition-all duration-300 transform hover:scale-105 block text-center no-underline">
+                <i class="fas fa-arrow-up mr-2"></i>
+                Upgrade to {{ plan.name }}
+            </a>
+            <p class="text-xs text-gray-600 mt-3 font-medium">Upgrade your current plan</p>
+        {% else %}
+            <!-- Downgrade Plan -->
+            <a href="{% url 'create_checkout_session' plan.id %}" 
+               class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
+                      text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl 
+                      transition-all duration-300 transform hover:scale-105 block text-center no-underline">
+                <i class="fas fa-arrow-down mr-2"></i>
+                Switch to {{ plan.name }}
+            </a>
+            <p class="text-xs text-gray-600 mt-3 font-medium">Change your current plan</p>
+        {% endif %}
+    {% else %}
+        <!-- For logged-out users -->
+        <a href="{% url 'register' %}?plan={{ plan.id }}" 
+           class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 
+                  text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl 
+                  transition-all duration-300 transform hover:scale-105 block text-center no-underline">
+            <i class="fas fa-rocket mr-2"></i>
+            Get Started with {{ plan.name }}
+        </a>
+        <p class="text-xs text-gray-600 mt-3 font-medium">No credit card required for free plan</p>
+    {% endif %}
+</div>
+            </div>
+        </div>
+
+        <!-- Detailed Features (Right) -->
+        <div class="lg:col-span-2">
+            <div class="glass-card rounded-3xl p-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Everything Included in {{ plan.name }}</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for feature in plan.features %}
+                    <div class="bg-white/50 rounded-2xl p-6 border border-gray-200 hover:border-green-300 transition-all duration-300">
+                        <div class="flex items-start space-x-4">
+
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-green-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ feature }}</h3>
+                                <p class="text-gray-700 text-sm">
+                                    {% if "Storage" in feature %}
+                                    Secure, reliable cloud storage with 99.9% uptime guarantee
+                                    {% elif "Support" in feature %}
+                                    24/7 customer support with quick response times
+                                    {% elif "Sharing" in feature %}
+                                    Easy and secure file sharing with anyone
+                                    {% elif "Analytics" in feature %}
+                                    Advanced usage analytics and insights
+                                    {% else %}
+                                    Premium feature included in your plan
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Comparison -->
+    <div class="glass-card rounded-3xl p-8 mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-8">Compare All Plans</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+<thead>
+    <tr class="border-b-2 border-gray-300">
+        <th class="text-left py-4 font-bold text-gray-900 text-lg">Feature</th>
+        {% for p in all_plans %}
+        <th class="text-center py-4 font-bold text-gray-900 text-lg {% if p.id == plan.id %}bg-green-50 rounded-t-lg{% endif %}">
+            {{ p.name }}
+            <div class="mt-2">
+                <span class="text-2xl font-bold text-gray-700">₹{{ p.price }}</span>
+                <span class="text-gray-500 text-sm ml-1">/year</span>
+            </div>
+            {% if p.id == plan.id %}
+            <span class="block text-sm text-green-600 font-normal mt-1">(Selected)</span>
+            {% endif %}
+        </th>
+        {% endfor %}
+    </tr>
+</thead>
+                <tbody>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">Storage Space</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            {{ p.max_storage_size|filesizeformat }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">File Size Limit</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            {% if p.plan_type == 'free' %}100MB
+                            {% else %}2GB{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">File Sharing</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            <i class="fas fa-check text-green-700 text-lg"></i>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">Public Links</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            <i class="fas fa-check text-green-700 text-lg"></i>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">Priority Support</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            {% if p.plan_type == 'free' %}<span class="text-gray-800">-</span>{% else %}
+                            <i class="fas fa-check text-green-700 text-lg"></i>{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="py-4 font-semibold text-gray-800">Advanced Analytics</td>
+                        {% for p in all_plans %}
+                        <td class="text-center py-4 text-gray-700 font-medium {% if p.id == plan.id %}bg-green-50{% endif %}">
+                            {% if p.plan_type in 'pro,enterprise' %}
+                            <i class="fas fa-check text-green-700 text-lg"></i>
+                            {% else %}<span class="text-gray-800">-</span>{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="glass-card rounded-3xl p-8">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-8">Frequently Asked Questions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div class="space-y-4">
+                <div class="bg-white/50 rounded-2xl p-6 border border-gray-200">
+                    <h3 class="font-semibold text-gray-900 mb-2 text-lg">Can I change plans later?</h3>
+                    <p class="text-gray-700">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+                </div>
+                <div class="bg-white/50 rounded-2xl p-6 border border-gray-200">
+                    <h3 class="font-semibold text-gray-900 mb-2 text-lg">What payment methods do you accept?</h3>
+                    <p class="text-gray-700">We accept all major credit cards, debit cards, and UPI payments through our secure payment gateway.</p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-white/50 rounded-2xl p-6 border border-gray-200">
+                    <h3 class="font-semibold text-gray-900 mb-2 text-lg">Is there a free trial?</h3>
+                    <p class="text-gray-700">Yes! Our free plan includes 5GB of storage forever. No credit card required to get started.</p>
+                </div>
+                <div class="bg-white/50 rounded-2xl p-6 border border-gray-200">
+                    <h3 class="font-semibold text-gray-900 mb-2 text-lg">How secure is my data?</h3>
+                    <p class="text-gray-700">Your files are encrypted with AES-256 encryption and stored in secure data centers with 99.9% uptime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Plans Button -->
+    <div class="text-center mt-12">
+        <a href="{% url 'register' %}" 
+           class="inline-flex items-center px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-2xl 
+                  shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 no-underline">
+            <i class="fas fa-arrow-left mr-3"></i>
+            Back to All Plans
+        </a>
+    </div>
+</div>
+{% endblock %}

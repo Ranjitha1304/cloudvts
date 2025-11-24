@@ -1,0 +1,195 @@
+{% extends 'admin/base.html' %}
+{% load humanize %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h2 class="text-3xl font-bold text-gray-800">Admin Dashboard</h2>
+    <p class="text-gray-600 mt-2">System overview and key metrics</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users -->
+    <div class="bg-white rounded-xl p-6 shadow-lg border">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Users</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_users|intcomma }}</p>
+                <p class="text-sm text-green-600 mt-1">
+                    +{{ new_users_today }} today
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-users text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Storage -->
+    <div class="bg-white rounded-xl p-6 shadow-lg border">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Storage</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_storage|filesizeformat }}</p>
+                <p class="text-sm text-gray-600 mt-1">{{ total_files|intcomma }} files</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-hdd text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Subscriptions -->
+    <div class="bg-white rounded-xl p-6 shadow-lg border">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Active Subscriptions</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ active_subscriptions|intcomma }}</p>
+                <p class="text-sm text-purple-600 mt-1">
+                    ₹{{ total_revenue|intcomma }}/year
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-credit-card text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Users This Week -->
+    <div class="bg-white rounded-xl p-6 shadow-lg border">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">New Users (Week)</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ new_users_week|intcomma }}</p>
+                <p class="text-sm text-blue-600 mt-1">
+                    +{{ new_users_today }} today
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-plus text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Recent Users -->
+    <div class="bg-white rounded-xl shadow-lg border">
+        <div class="px-6 py-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Users</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for user in recent_users %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ user.username }}</p>
+                            <p class="text-sm text-gray-500">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-gray-900">{{ user.userprofile.storage_plan.name }}</p>
+                        <p class="text-xs text-gray-500">{{ user.date_joined|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4">No recent users</p>
+                {% endfor %}
+            </div>
+            <a href="{% url 'admin_users' %}" class="block text-center mt-4 text-blue-600 hover:text-blue-700 font-medium">
+                View All Users <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Plan Distribution -->
+    <div class="bg-white rounded-xl shadow-lg border">
+        <div class="px-6 py-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">Plan Distribution</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-3">
+                {% for plan in plan_distribution %}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">{{ plan.storage_plan__name|default:"Unknown" }}</span>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-32 bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" 
+                                 style="width: {{ plan.count|divisibleby:total_users|default:0|floatformat:2 }}%">
+                            </div>
+                        </div>
+                        <span class="text-sm font-bold text-gray-900 w-8">{{ plan.count }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4">No plan data available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- File Type Statistics -->
+    <div class="bg-white rounded-xl shadow-lg border">
+        <div class="px-6 py-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">File Type Distribution</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-3">
+                {% for stat in file_type_stats %}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">
+                        {{ stat.file_type|default:"Unknown"|upper }}
+                    </span>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-gray-500">{{ stat.count }} files</span>
+                        <span class="text-sm font-bold text-gray-900">{{ stat.total_size|filesizeformat }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4">No file statistics available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Subscriptions -->
+    <div class="bg-white rounded-xl shadow-lg border">
+        <div class="px-6 py-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Subscriptions</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for sub in recent_subscriptions %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-crown text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ sub.user.username }}</p>
+                            <p class="text-sm text-gray-500">{{ sub.plan.name }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-green-600">₹{{ sub.plan.price }}/year</p>
+                        <p class="text-xs text-gray-500">{{ sub.created_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4">No recent subscriptions</p>
+                {% endfor %}
+            </div>
+            <a href="{% url 'admin_subscriptions' %}" class="block text-center mt-4 text-blue-600 hover:text-blue-700 font-medium">
+                View All Subscriptions <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,404 @@
+<!-- Share Modal - UPDATED WITH PASSWORD PROTECTION -->
+<div id="shareModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300">
+    <div class="relative top-20 mx-auto p-5 w-96 modal-enter">
+        <div class="glass-card rounded-2xl shadow-2xl border border-white/20">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800" id="shareModalTitle">Share File</h3>
+                    <button onclick="hideShareModal()" 
+                            class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="shareForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="shareFileId" name="file_id" value="">
+                    <input type="hidden" id="shareItemType" name="item_type" value="file">
+                    <input type="hidden" id="shareIsPrivate" name="is_private" value="true">
+                    
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Sharing:</p>
+                        <p class="text-lg font-semibold text-gray-800" id="shareFileName"></p>
+                        <div id="privacyBadge" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1">
+                            <!-- Privacy badge will be added dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Link Expires In</label>
+                        <select name="expires_in" class="w-full px-4 py-3 bg-white/80 border-0 rounded-xl text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg">
+                            <option value="">Never</option>
+                            <option value="1">1 Day</option>
+                            <option value="7">1 Week</option>
+                            <option value="30">1 Month</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Password Protection Section - ONLY FOR PRIVATE FILES/FOLDERS -->
+                    <div id="passwordSectionContainer" class="mb-6 hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="block text-sm font-medium text-gray-700">Password Protection</label>
+                            <div class="relative inline-block w-12 h-6">
+                                <input type="checkbox" id="enablePassword" name="enable_password" class="sr-only">
+                                <div id="toggleBg" class="toggle-bg bg-gray-200 border-2 border-gray-200 h-6 w-12 rounded-full transition-all duration-200 cursor-pointer" onclick="togglePasswordSwitch()"></div>
+                                <div id="toggleDot" class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200"></div>
+                            </div>
+                        </div>
+                        <div id="passwordSection" class="hidden mt-3">
+                            <input type="password" 
+                                   name="password" 
+                                   id="sharePassword"
+                                   class="w-full px-4 py-3 bg-white/80 border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg"
+                                   placeholder="Enter password for this share link">
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Anyone with this link will need to enter this password
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Info message for public files -->
+                    <div id="publicFileInfo" class="bg-blue-50/50 border border-blue-200 rounded-xl p-4 mb-6 hidden">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                            <div>
+                                <h4 class="text-blue-800 font-medium text-sm">Public File</h4>
+                                <p class="text-blue-600 text-xs mt-1">
+                                    This file is already public. No password protection needed as anyone can access it directly.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideShareModal()" 
+                                class="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-200 transform hover:scale-105">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="btn-gradient px-6 py-3 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                            Create Share Link
+                        </button>
+                    </div>
+                </form>
+
+                <div id="shareResult" class="mt-6 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Share Link</label>
+                    <div class="flex space-x-3 mb-4">
+                        <input type="text" id="shareLinkOutput" readonly 
+                               class="flex-1 px-4 py-3 bg-white/80 border-0 rounded-xl text-sm text-gray-900 shadow-lg">
+                        <button onclick="copyShareLink()" 
+                                class="px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all duration-200 transform hover:scale-105">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div id="passwordInfo" class="text-xs text-gray-500 bg-blue-50/50 rounded-xl p-3 hidden">
+                        <i class="fas fa-shield-alt mr-2 text-blue-500"></i>
+                        This share link is <strong>password protected</strong>
+                    </div>
+                    <div id="noPasswordInfo" class="text-xs text-gray-500 bg-green-50/50 rounded-xl p-3">
+                        <i class="fas fa-link mr-2 text-green-500"></i>
+                        Anyone with this link can access the file
+                    </div>
+                    <button onclick="hideShareModal()" 
+                            class="w-full mt-4 px-6 py-3 btn-gradient text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global modal state
+    let currentShareFileId = null;
+    let currentShareItemType = 'file';
+    let currentIsPrivate = true;
+
+    function showShareModal(fileId, fileName, isPrivate = true, itemType = 'file') {
+        console.log('📤 Opening share modal for:', fileName, 'ID:', fileId, 'Type:', itemType, 'Private:', isPrivate);
+        
+        currentShareFileId = fileId;
+        currentShareItemType = itemType;
+        currentIsPrivate = isPrivate;
+        
+        document.getElementById('shareFileId').value = fileId;
+        document.getElementById('shareItemType').value = itemType;
+        document.getElementById('shareIsPrivate').value = isPrivate;
+        document.getElementById('shareFileName').textContent = fileName;
+        
+        // Update modal title based on item type
+        const modalTitle = document.getElementById('shareModalTitle');
+        modalTitle.textContent = itemType === 'folder' ? 'Share Folder' : 'Share File';
+        
+        const modal = document.getElementById('shareModal');
+        const shareForm = document.getElementById('shareForm');
+        const shareResult = document.getElementById('shareResult');
+        const passwordContainer = document.getElementById('passwordSectionContainer');
+        const publicInfo = document.getElementById('publicFileInfo');
+        const privacyBadge = document.getElementById('privacyBadge');
+        
+        // Reset modal state
+        shareForm.reset();
+        shareForm.classList.remove('hidden');
+        shareResult.classList.add('hidden');
+        
+        // Reset password section
+        const passwordSection = document.getElementById('passwordSection');
+        const enablePassword = document.getElementById('enablePassword');
+        if (passwordSection && enablePassword) {
+            passwordSection.classList.add('hidden');
+            enablePassword.checked = false;
+            updateToggleSwitch(false);
+            document.getElementById('sharePassword').value = '';
+        }
+        
+        // Show/hide password protection based on privacy
+        if (isPrivate) {
+            // Private file/folder - show password option
+            passwordContainer.classList.remove('hidden');
+            publicInfo.classList.add('hidden');
+            
+            // Update privacy badge
+            privacyBadge.innerHTML = `
+                <i class="fas fa-lock mr-1"></i>
+                <span>Private</span>
+            `;
+            privacyBadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 bg-red-100 text-red-800';
+        } else {
+            // Public file/folder - hide password option
+            passwordContainer.classList.add('hidden');
+            publicInfo.classList.remove('hidden');
+            
+            // Update privacy badge
+            privacyBadge.innerHTML = `
+                <i class="fas fa-globe mr-1"></i>
+                <span>Public</span>
+            `;
+            privacyBadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 bg-green-100 text-green-800';
+            
+            // Update info message for folders
+            if (itemType === 'folder') {
+                publicInfo.querySelector('h4').textContent = 'Public Folder';
+                publicInfo.querySelector('p').textContent = 'This folder is already public. No password protection needed as anyone can access it directly.';
+            }
+        }
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            console.log('✅ Share modal fully visible - Private:', isPrivate);
+        }, 10);
+    }
+
+    function showFileShareModal(fileId, fileName, isPrivate = true) {
+        showShareModal(fileId, fileName, isPrivate, 'file');
+    }
+
+    function showFolderShareModal(folderId, folderName, isPrivate = true) {
+        showShareModal(folderId, folderName, isPrivate, 'folder');
+    }
+
+    function hideShareModal() {
+        const modal = document.getElementById('shareModal');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            currentShareFileId = null;
+            currentShareItemType = 'file';
+            currentIsPrivate = true;
+            console.log('📪 Share modal closed');
+        }, 300);
+    }
+
+    function togglePasswordSwitch() {
+        const enablePassword = document.getElementById('enablePassword');
+        const passwordSection = document.getElementById('passwordSection');
+        
+        if (enablePassword && passwordSection) {
+            enablePassword.checked = !enablePassword.checked;
+            updateToggleSwitch(enablePassword.checked);
+            
+            if (enablePassword.checked) {
+                passwordSection.classList.remove('hidden');
+                console.log('🔓 Password field shown');
+            } else {
+                passwordSection.classList.add('hidden');
+                document.getElementById('sharePassword').value = '';
+                console.log('🔒 Password field hidden');
+            }
+        }
+    }
+
+    function updateToggleSwitch(isChecked) {
+        const toggleBg = document.getElementById('toggleBg');
+        const toggleDot = document.getElementById('toggleDot');
+        
+        if (isChecked) {
+            toggleBg.classList.remove('bg-gray-200', 'border-gray-200');
+            toggleBg.classList.add('bg-blue-500', 'border-blue-500');
+            toggleDot.style.transform = 'translateX(150%)';
+        } else {
+            toggleBg.classList.remove('bg-blue-500', 'border-blue-500');
+            toggleBg.classList.add('bg-gray-200', 'border-gray-200');
+            toggleDot.style.transform = 'translateX(0)';
+        }
+    }
+
+    function copyShareLink() {
+        const linkInput = document.getElementById('shareLinkOutput');
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);
+        
+        navigator.clipboard.writeText(linkInput.value).then(function() {
+            const copyBtn = event.target.closest('button');
+            const originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+            copyBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+            copyBtn.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHtml;
+                copyBtn.classList.remove('bg-green-600');
+                copyBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+            }, 2000);
+        }).catch(function() {
+            document.execCommand('copy');
+            showNotification('Link copied to clipboard!', 'success');
+        });
+    }
+
+    // Share form submission
+    document.getElementById('shareForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let itemId = currentShareFileId;
+        const itemType = currentShareItemType;
+        const isPrivate = currentIsPrivate;
+        
+        console.log('🔍 Item details - ID:', itemId, 'Type:', itemType, 'Private:', isPrivate);
+        
+        if (!itemId) {
+            console.error('❌ No item ID found!');
+            showNotification('Error: No item selected. Please close and reopen the share modal.', 'error');
+            return;
+        }
+        
+        console.log('📨 Creating share link for:', itemType, 'ID:', itemId);
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        formData.set('item_id', itemId);
+        formData.set('item_type', itemType);
+        
+        // Debug: Log all form data
+        console.log('📋 Form data being submitted:');
+        for (let [key, value] of formData.entries()) {
+            if (key === 'password') {
+                console.log(`  ${key}:`, value ? '***' + value.slice(-2) : '(empty)');
+            } else {
+                console.log(`  ${key}:`, value);
+            }
+        }
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+        
+        // Determine the correct URL based on item type
+        let shareUrl = '';
+        if (itemType === 'file') {
+            shareUrl = `/share/create/${itemId}/`;
+        } else if (itemType === 'folder') {
+            shareUrl = `/share/folder/create/${itemId}/`;
+        }
+        
+        fetch(shareUrl, {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Server response:', data);
+            if (data.success) {
+                // Update the share link output
+                document.getElementById('shareLinkOutput').value = data.share_url;
+                document.getElementById('shareResult').classList.remove('hidden');
+                document.getElementById('shareForm').classList.add('hidden');
+                
+                // Show password info if applicable
+                if (data.has_password) {
+                    document.getElementById('passwordInfo').classList.remove('hidden');
+                    document.getElementById('noPasswordInfo').classList.add('hidden');
+                } else {
+                    document.getElementById('passwordInfo').classList.add('hidden');
+                    document.getElementById('noPasswordInfo').classList.remove('hidden');
+                }
+                
+                showNotification('Share link created successfully!', 'success');
+                console.log('🎉 Share link created:', data.share_url);
+            } else {
+                throw new Error(data.error || 'Failed to create share link');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Share creation error:', error);
+            showNotification('Error creating share link: ' + error.message, 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('shareModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            hideShareModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('shareModal');
+            if (!modal.classList.contains('hidden')) {
+                hideShareModal();
+            }
+        }
+    });
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Share modal system initialized');
+    });
+</script>
+
+<style>
+.toggle-bg {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.dot {
+    transition: transform 0.2s ease-in-out;
+}
+
+#shareModal {
+    z-index: 10000 !important;
+}
+</style>

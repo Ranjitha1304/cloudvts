@@ -1,0 +1,10 @@
+# requirements.txt
+Django
+django-allauth
+django-storages
+boto3
+stripe
+python-dotenv
+whitenoise
+Pillow
+gunicorn

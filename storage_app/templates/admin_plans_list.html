@@ -1,0 +1,225 @@
+<!-- templates/admin_plans_list.html -->
+{% extends 'admin_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+<div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+    <div class="px-8 py-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center floating mx-auto sm:mx-0">
+                    <i class="fas fa-crown text-white text-2xl"></i>
+                </div>
+                <div class="text-center sm:text-left">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">Plan Management</h1>
+                    <p class="text-blue-100 text-sm sm:text-base lg:text-lg opacity-90">Create, edit, and manage storage plans</p>
+                </div>
+            </div>
+            <a href="{% url 'admin_plan_create' %}" 
+               class="btn-gradient text-white px-4 py-3 sm:px-6 sm:py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 shadow-lg w-full sm:w-auto">
+                <i class="fas fa-plus"></i>
+                <span>Create New Plan</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+    <!-- Plans List -->
+    <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.01] shadow-xl">
+        <div class="px-6 py-6 border-b border-white/20 bg-white/10">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+                <i class="fas fa-list text-purple-400"></i>
+                <span>All Storage Plans</span>
+                <span class="text-purple-700 text-lg font-normal bg-purple-500/20 px-2 py-1 rounded-full">{{ plans.count }} plans</span>
+            </h2>
+        </div>
+        
+        <div class="p-6">
+            {% if plans %}
+            <div class="overflow-x-auto rounded-2xl">
+                <table class="min-w-full divide-y divide-white/20">
+                    <thead class="bg-white/20">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Plan Details</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Storage & Price</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Users</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white/10 divide-y divide-white/20">
+                        {% for plan in plans %}
+                        <tr class="hover:bg-white/15 transition-colors duration-200">
+                            <td class="px-6 py-6">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br 
+                                        {% if plan.plan_type == 'free' %}from-gray-500 to-gray-700
+                                        {% elif plan.plan_type == 'basic' %}from-blue-500 to-blue-700
+                                        {% elif plan.plan_type == 'pro' %}from-purple-500 to-purple-700
+                                        {% elif plan.plan_type == 'enterprise' %}from-orange-500 to-orange-700
+                                        {% else %}from-green-500 to-green-700{% endif %} 
+                                        rounded-xl flex items-center justify-center shadow-md">
+                                        <i class="fas 
+                                            {% if plan.plan_type == 'free' %}fa-user
+                                            {% elif plan.plan_type == 'basic' %}fa-star
+                                            {% elif plan.plan_type == 'pro' %}fa-crown
+                                            {% elif plan.plan_type == 'enterprise' %}fa-rocket
+                                            {% else %}fa-bolt{% endif %} 
+                                            text-white text-lg">
+                                        </i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white mb-1">{{ plan.name }}</h3>
+                                        <p class="text-sm text-blue-200 capitalize font-medium mb-2">{{ plan.plan_type }} Plan</p>
+                                        <!-- <p class="text-xs text-gray-200">
+                                            {% for feature in plan.features|slice:":2" %}
+                                                <span class="bg-white/20 px-2 py-1 rounded mr-1 mb-1 inline-block text-white/90">{{ feature }}</span>
+                                            {% endfor %}
+                                            {% if plan.features|length > 2 %}
+                                                <span class="text-blue-300 font-medium bg-blue-500/20 px-2 py-1 rounded">+{{ plan.features|length|add:"-2" }} more</span>
+                                            {% endif %}
+                                        </p> -->
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6">
+                                <p class="text-white font-semibold text-lg mb-1">
+                                    {{ plan.max_storage_size|filesizeformat }}
+                                </p>
+                                <p class="text-xl font-bold 
+                                    {% if plan.price == 0 %}text-green-200
+                                    {% else %}text-yellow-200{% endif %} mb-1">
+                                    {% if plan.price == 0 %}
+                                        Free
+                                    {% else %}
+                                        ₹{{ plan.price|intcomma }}/year
+                                    {% endif %}
+                                </p>
+                                <!-- {% if plan.price > 0 %}
+                                <p class="text-sm text-gray-200 font-medium">
+                                    ₹{{ plan.get_monthly_equivalent|slice:"1:" }}/month
+                                </p>
+                                {% endif %} -->
+                            </td>
+                            <td class="px-6 py-6">
+                                <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium mb-2
+                                    {% if plan.is_active %}bg-green-500/30 text-green-700 border border-green-500/50
+                                    {% else %}bg-red-500/30 text-red-500 border border-red-500/50{% endif %} shadow-sm">
+                                    <i class="fas fa-circle text-xs mr-2"></i>
+                                    {{ plan.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                                <p class="text-sm text-gray-200 font-medium">
+                                    Order: <span class="text-white">{{ plan.display_order }}</span>
+                                </p>
+                            </td>
+                            <td class="px-6 py-6">
+                                {% with user_count=plan.userprofile_set.count %}
+                                <p class="text-white font-bold text-2xl">{{ user_count }}</p>
+                                <p class="text-sm text-gray-200 font-medium">user{{ user_count|pluralize }}</p>
+                                {% endwith %}
+                            </td>
+                            <td class="px-6 py-6">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'admin_plan_edit' plan.id %}" 
+                                       class="bg-blue-600/80 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 border border-blue-500/50 shadow-sm hover:shadow-md"
+                                       title="Edit Plan">
+                                        <i class="fas fa-edit text-sm"></i>
+                                        <span class="text-sm font-medium">Edit</span>
+                                    </a>
+                                    
+                                    <form method="POST" action="{% url 'admin_plan_toggle' plan.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="{% if plan.is_active %}bg-orange-600/80 hover:bg-orange-600 text-white border border-orange-500/50
+                                                       {% else %}bg-green-600/80 hover:bg-green-600 text-white border border-green-500/50{% endif %} 
+                                                       px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                                title="{{ plan.is_active|yesno:'Deactivate,Activate' }} Plan">
+                                            <i class="fas {% if plan.is_active %}fa-pause{% else %}fa-play{% endif %} text-sm"></i>
+                                            <span class="text-sm font-medium">{{ plan.is_active|yesno:'Deactivate,Activate' }}</span>
+                                        </button>
+                                    </form>
+                                    
+                                    <button onclick="showDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
+                                            class="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 border border-red-500/50 shadow-sm hover:shadow-md"
+                                            title="Delete Plan">
+                                        <i class="fas fa-trash text-sm"></i>
+                                        <span class="text-sm font-medium">Delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-crown text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">No Plans Found</h3>
+                <p class="text-gray-300 mb-8 text-lg max-w-md mx-auto">Create your first storage plan to get started with plan management.</p>
+                <a href="{% url 'admin_plan_create' %}" 
+                   class="btn-gradient text-white px-8 py-4 rounded-xl font-semibold inline-flex items-center space-x-3 text-lg shadow-lg hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-plus"></i>
+                    <span>Create First Plan</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+    <div class="glass-card rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 modal-enter border border-white/20 shadow-2xl">
+        <div class="text-center">
+            <div class="w-20 h-20 bg-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/50">
+                <i class="fas fa-exclamation-triangle text-red-400 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">Delete Plan</h3>
+            <p class="text-gray-200 mb-8 text-lg leading-relaxed">Are you sure you want to delete <span id="planName" class="font-semibold text-white bg-red-500/20 px-2 py-1 rounded"></span>? This action cannot be undone.</p>
+            
+            <div class="flex space-x-4 justify-center">
+                <button onclick="hideDeleteModal()" 
+                        class="bg-gray-600/80 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-500/50 shadow-sm hover:shadow-md">
+                    Cancel
+                </button>
+                <form id="deleteForm" method="POST" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="bg-red-600/80 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 border border-red-500/50 shadow-sm hover:shadow-md">
+                        Delete Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteModal(planId, planName) {
+    const modal = document.getElementById('deleteModal');
+    const planNameSpan = document.getElementById('planName');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    planNameSpan.textContent = planName;
+    deleteForm.action = `/admin-dashboard/plans/${planId}/delete/`;
+    modal.classList.remove('hidden');
+}
+
+function hideDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideDeleteModal();
+    }
+});
+</script>
+{% endblock %}

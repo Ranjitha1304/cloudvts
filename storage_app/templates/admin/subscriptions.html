@@ -1,0 +1,225 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Subscription Management</h1>
+        <p class="text-gray-600 mt-2">Manage subscriptions and monitor revenue</p>
+    </div>
+
+    <!-- Revenue Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">₹{{ monthly_revenue }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-rupee-sign text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Subscriptions</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ active_subscriptions }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Trial Users</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ trial_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Failed Payments</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ failed_payments }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Distribution -->
+    <div class="glass-card rounded-2xl p-6 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Plan Distribution</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for plan in plan_distribution %}
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-{{ plan.icon }} text-white text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900 text-lg">{{ plan.name }}</h4>
+                <p class="text-3xl font-bold text-purple-600 my-3">{{ plan.count }}</p>
+                <p class="text-sm text-gray-500">{{ plan.percentage }}% of users</p>
+                <p class="text-sm font-medium text-gray-700 mt-2">₹{{ plan.revenue }}/month</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Active Subscriptions Table -->
+    <div class="glass-card rounded-2xl p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">Active Subscriptions</h3>
+            <div class="flex space-x-3">
+                <select class="bg-white/80 border-0 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    <option>All Plans</option>
+                    <option>Free</option>
+                    <option>Basic</option>
+                    <option>Pro</option>
+                    <option>Enterprise</option>
+                </select>
+                <input type="text" placeholder="Search users..." 
+                       class="bg-white/80 border-0 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl">
+            <table class="min-w-full divide-y divide-gray-200/50">
+                <thead class="bg-white/80">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">User</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Plan</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Started</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Renews</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white/50 divide-y divide-gray-200/30">
+                    {% for subscription in active_subscriptions_list %}
+                    <tr class="hover:bg-white/80 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-sm">{{ subscription.user.username|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ subscription.user.username }}</p>
+                                    <p class="text-sm text-gray-500">{{ subscription.user.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                {{ subscription.plan.name }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {% if subscription.status == 'active' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                <i class="fas fa-circle text-xs mr-2"></i>
+                                {{ subscription.status|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ subscription.current_period_start|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ subscription.current_period_end|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex space-x-2">
+                                <button class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-colors" title="View Details">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                                <button class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 hover:bg-yellow-200 transition-colors" title="Send Reminder">
+                                    <i class="fas fa-bell text-xs"></i>
+                                </button>
+                                <button class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-200 transition-colors" title="Cancel Subscription">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-6">
+            <p class="text-sm text-gray-600">Showing {{ active_subscriptions_list|length }} of {{ active_subscriptions }} subscriptions</p>
+            <div class="flex space-x-2">
+                <button class="px-4 py-2 bg-white/80 rounded-xl text-gray-700 hover:bg-white transition-colors">
+                    Previous
+                </button>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Monthly Revenue -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Monthly Revenue Trend</h3>
+            <div class="bg-white/50 rounded-xl p-6">
+                <div class="flex items-end justify-between h-40 space-x-2">
+                    {% for month in revenue_trend %}
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="w-full bg-gradient-to-t from-green-500 to-green-300 rounded-t-lg transition-all duration-300 hover:from-green-600 hover:to-green-400"
+                             style="height: {{ month.percentage }}%">
+                        </div>
+                        <span class="text-xs text-gray-500 mt-2">{{ month.month }}</span>
+                        <span class="text-xs font-medium text-gray-700">₹{{ month.revenue }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Subscription Status</h3>
+            <div class="space-y-4">
+                {% for status in subscription_status %}
+                <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center 
+                            {% if status.status == 'active' %}bg-green-100 text-green-600
+                            {% elif status.status == 'canceled' %}bg-red-100 text-red-600
+                            {% else %}bg-yellow-100 text-yellow-600{% endif %}">
+                            <i class="fas 
+                                {% if status.status == 'active' %}fa-check-circle
+                                {% elif status.status == 'canceled' %}fa-times-circle
+                                {% else %}fa-clock{% endif %} text-xl">
+                            </i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">{{ status.status|title }}</p>
+                            <p class="text-sm text-gray-500">{{ status.description }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-gray-900">{{ status.count }}</span>
+                        <p class="text-sm text-gray-500">{{ status.percentage }}%</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

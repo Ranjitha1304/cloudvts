@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8">
+        <!-- Registration Card -->
+        <div class="glass-card rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-500">
+            <div class="p-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-20 h-20 bg-gradient-to-br from-white to-green-100 rounded-full flex items-center justify-center shadow-lg floating mb-4">
+                        <i class="fas fa-cloud text-3xl bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                        Create Your Account
+                    </h2>
+                    <p class="text-gray-800 mt-2">Choose a plan and create your account to get started</p>
+                </div>
+
+
+                <!-- Registration Form -->
+                <div id="registrationForm">
+                    <form class="space-y-5" method="POST" id="registerForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_id" id="selectedPlanId" value="{{ plans.0.id }}">
+                        
+                        {% if form.errors %}
+                        <div class="bg-red-400/20 backdrop-blur-sm border border-red-300/30 text-gray-800 px-4 py-3 rounded-2xl transform transition-all duration-300 animate-pulse">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Please correct the errors below.</span>
+                            </div>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <p class="text-sm mt-1">{{ error }}</p>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Username Field -->
+    <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-800">Username <span class="text-red-700">*</span></label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-user text-blue-600"></i>
+            </div>
+            <input id="username" name="username" type="text" required 
+                   class="block w-full pl-10 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 focus:bg-white/20 transition-all duration-300 text-gray-800"
+                   placeholder="Enter your username"
+                   value="{{ form.username.value|default:'' }}">
+        </div>
+        {% if form.username.errors %}
+        <p class="text-red-600 text-sm">{{ form.username.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Email Field -->
+    <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-800">Email Address <span class="text-red-700">*</span></label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-envelope text-blue-600"></i>
+            </div>
+            <input id="email" name="email" type="email" required 
+                   class="block w-full pl-10 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 focus:bg-white/20 transition-all duration-300 text-gray-800"
+                   placeholder="Enter your email"
+                   value="{{ form.email.value|default:'' }}">
+        </div>
+        {% if form.email.errors %}
+        <p class="text-red-600 text-sm">{{ form.email.errors.0 }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Password Field -->
+    <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-800">Password <span class="text-red-700">*</span></label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-blue-600"></i>
+            </div>
+            <input id="password1" name="password1" type="password" required 
+                   class="block w-full pl-10 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 focus:bg-white/20 transition-all duration-300 text-gray-800"
+                   placeholder="Create a password">
+        </div>
+        <div id="password-strength" class="text-gray-700 text-sm mt-1"></div>
+    </div>
+
+    <!-- Confirm Password Field -->
+    <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-800">Confirm Password <span class="text-red-700">*</span></label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-blue-600"></i>
+            </div>
+            <input id="password2" name="password2" type="password" required 
+                   class="block w-full pl-10 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 focus:bg-white/20 transition-all duration-300 text-gray-800"
+                   placeholder="Confirm your password">
+        </div>
+        <div id="password-match" class="text-gray-700 text-sm mt-1"></div>
+    </div>
+</div>
+
+                                        <!-- Plan Selection Section -->
+<!-- Plan Selection Section -->
+<div class="mb-8">
+    <h3 class="text-2xl font-bold text-gray-800 mb-2 text-center">Choose Your Plan</h3>
+    <p class="text-gray-600 text-center mb-8">Select the perfect plan for your storage needs</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {% for plan in plans %}
+        <div class="plan-card glass-card rounded-2xl p-6 cursor-pointer transform transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-400 shadow-lg hover:shadow-xl flex flex-col h-full"
+             onclick="selectPlan('{{ plan.id }}', this)"
+             data-plan-id="{{ plan.id }}">
+            <div class="text-center flex-1 flex flex-col">
+                <!-- Plan Icon -->
+                <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
+                    {% if plan.price == 0 %}
+                    <i class="fas fa-user text-white text-lg"></i>
+                    {% elif plan.price < 1000 %}
+                    <i class="fas fa-star text-white text-lg"></i>
+                    {% else %}
+                    <i class="fas fa-crown text-white text-lg"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Plan Name - Fixed height to prevent wrapping -->
+                <div class="h-12 flex items-center justify-center mb-2">
+                    <h4 class="text-lg font-bold text-gray-800 leading-tight line-clamp-2">{{ plan.name }}</h4>
+                </div>
+                
+                <!-- Price Section - Fixed height -->
+                <div class="mb-4 h-16 flex flex-col justify-center">
+                    <div class="flex items-baseline justify-center">
+                        <span class="text-2xl font-bold text-gray-800">₹{{ plan.price }}</span>
+                        <span class="text-gray-600 ml-1 text-sm">/year</span>
+                    </div>
+                    <p class="text-gray-500 text-xs mt-1">
+                        {{ plan.max_storage_size|filesizeformat }} Storage
+                    </p>
+                </div>
+
+                <!-- Features - Flexible height -->
+                <div class="flex-1 mb-4">
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        {% for feature in plan.features|slice:":3" %}
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs flex-shrink-0"></i>
+                            <span class="text-xs leading-relaxed">{{ feature }}</span>
+                        </li>
+                        {% endfor %}
+                        {% if plan.features|length > 3 %}
+                        <li class="flex items-start">
+                            <i class="fas fa-plus text-blue-500 mr-2 mt-0.5 text-xs flex-shrink-0"></i>
+                            <span class="text-gray-600 text-xs">and more...</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Select Button - Fixed at bottom -->
+                <div class="mt-auto pt-4">
+                    <div class="bg-gray-100 rounded-lg py-2 px-4 text-gray-700 text-sm font-medium transition-all duration-300 select-plan-btn">
+                        Select Plan
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Plan Selection Instructions -->
+    <div class="text-center bg-blue-50 rounded-xl p-4 border border-blue-200">
+        <p class="text-gray-700 text-sm">
+            <i class="fas fa-mouse-pointer text-blue-500 mr-2"></i>
+            Click on any plan to know more, or "Select Plan" to proceed
+        </p>
+    </div>
+</div>
+                        <!-- Selected Plan Display -->
+<!-- Selected Plan Display -->
+<!-- Selected Plan Display -->
+<div id="selectedPlanDisplay" class="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+        <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
+                <i class="fas fa-check text-white text-sm"></i>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm font-medium">Selected Plan</p>
+                <h3 class="text-xl font-bold text-gray-800" id="planNameDisplay">Free Plan</h3>
+            </div>
+        </div>
+        <div class="text-left sm:text-right">
+            <div class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent" id="planPriceDisplay">
+                ₹0<span class="text-lg font-semibold">/year</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white/80 rounded-xl p-4 border border-gray-200">
+        <div class="flex items-center mb-2">
+            <i class="fas fa-list-check text-blue-500 mr-2 text-sm"></i>
+            <p class="text-gray-700 text-sm font-semibold">Plan Features:</p>
+        </div>
+        <p class="text-gray-600 text-sm leading-relaxed" id="planFeaturesDisplay">
+            5GB Storage • Basic File Sharing • Standard Support
+        </p>
+    </div>
+</div>
+                        <!-- Terms and Conditions -->
+                        <div class="flex items-center space-x-3 bg-blue-50/20 rounded-xl p-4">
+                            <input id="terms" name="terms" type="checkbox" required
+                                   class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200">
+<label for="terms" class="block text-sm text-gray-800 cursor-pointer">
+    I agree to the 
+    <a href="{% url 'terms_of_service' %}" class="text-gray-900 underline hover:text-gray-700" target="_blank">Terms of Service</a> 
+    and 
+    <a href="{% url 'privacy_policy' %}" class="text-gray-900 underline hover:text-gray-700" target="_blank">Privacy Policy</a>
+</label>                        </div>
+
+                        <!-- Submit Button -->
+
+                    <!-- Create Account and Google in Same Row - Fixed Alignment -->
+                    <!-- Create Account and Google in Same Row - Perfect Alignment -->
+<div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-4">
+    <!-- Left Side - Create Account Button -->
+    <button type="submit" 
+            class="w-full sm:flex-1 py-4 px-4 border border-transparent text-lg font-bold rounded-2xl bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transform transition-all duration-300 hover:scale-105 text-white shadow-lg hover:shadow-xl">
+        <i class="fas fa-user-plus mr-2"></i>
+        Create Account
+    </button>
+
+    <!-- Right Side - Google Sign Up -->
+    <div class="w-full sm:flex-1 flex flex-col items-center">
+        <p class="text-gray-700 text-sm mb-2">Or continue with</p>
+        <a href="/accounts/google/login/" 
+           class="w-full inline-flex justify-center items-center py-4 px-4 border border-gray-300 rounded-2xl text-sm font-medium text-gray-800 bg-white hover:bg-blue-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 transform transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg group">
+            <i class="fab fa-google mr-2 text-blue-500 text-lg group-hover:scale-110 group-hover:text-blue-600 transition-transform duration-300"></i>
+            <span class="font-semibold">Google</span>
+        </a>
+    </div>
+</div>
+
+                    
+                    <!-- Login Link - Separate -->
+                    <div class="text-center mt-6">
+                        <p class="text-gray-700">
+                            Already have an account?
+                            <a href="{% url 'login' %}" 
+                               class="font-semibold text-gray-900 hover:text-gray-700 underline transition-colors duration-200">
+                                Sign in here
+                            </a>
+                        </p>
+                    </div>
+</form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Badge -->
+        <div class="text-center">
+            <p class="text-gray-700 text-sm flex items-center justify-center space-x-2">
+                <i class="fas fa-shield-alt text-green-600"></i>
+                <span>Your data is securely encrypted and protected</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedPlanId = '{{ plans.0.id }}'; // Default to free plan
+    const plansData = {
+        {% for plan in plans %}
+        '{{ plan.id }}': {
+            name: '{{ plan.name }}',
+            price: '₹{{ plan.price }}/year',
+            features: '{{ plan.features|join:" • "|slice:":50" }}...'
+        },
+        {% endfor %}
+    };
+
+function selectPlan(planId, element, event = null) {
+    // Prevent the card click event from firing if called from button
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // Remove selection from all cards
+    document.querySelectorAll('.plan-card').forEach(card => {
+        card.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+        card.classList.add('border-transparent');
+        
+        // Reset select button
+        const selectBtn = card.querySelector('.select-plan-btn');
+        if (selectBtn) {
+            selectBtn.classList.remove('bg-blue-500', 'text-white', 'font-semibold');
+            selectBtn.classList.add('bg-gray-100', 'text-gray-700');
+            selectBtn.innerHTML = 'Select Plan';
+        }
+    });
+
+    // Add selection to clicked card
+    element.classList.remove('border-transparent');
+    element.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+
+    // Update select button
+    const selectBtn = element.querySelector('.select-plan-btn');
+    if (selectBtn) {
+        selectBtn.classList.remove('bg-gray-100', 'text-gray-700');
+        selectBtn.classList.add('bg-blue-500', 'text-white', 'font-semibold');
+        selectBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Selected';
+    }
+
+    selectedPlanId = planId;
+    
+    // Update form with selected plan
+    document.getElementById('selectedPlanId').value = planId;
+    
+    // Update plan display
+    const plan = plansData[planId];
+    document.getElementById('planNameDisplay').textContent = plan.name;
+    document.getElementById('planPriceDisplay').textContent = plan.price;
+    document.getElementById('planFeaturesDisplay').textContent = plan.features;
+
+    // Scroll to form if not visible
+}
+
+    // Password strength indicator
+    document.addEventListener('DOMContentLoaded', function() {
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        
+        if (password1 && password2) {
+            password1.addEventListener('input', function() {
+                checkPasswordStrength(this.value);
+            });
+            
+            password2.addEventListener('input', function() {
+                checkPasswordMatch();
+            });
+        }
+
+        function checkPasswordStrength(password) {
+            const strength = document.getElementById('password-strength') || createPasswordStrengthIndicator();
+            let strengthText = '';
+            let strengthColor = '';
+            
+            if (password.length === 0) {
+                strengthText = '';
+            } else if (password.length < 6) {
+                strengthText = 'Weak';
+                strengthColor = 'text-red-600';
+            } else if (password.length < 8) {
+                strengthText = 'Medium';
+                strengthColor = 'text-yellow-600';
+            } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+                strengthText = 'Good';
+                strengthColor = 'text-blue-600';
+            } else {
+                strengthText = 'Strong';
+                strengthColor = 'text-green-600';
+            }
+            
+            strength.innerHTML = strengthText ? `Password strength: <span class="${strengthColor} font-bold">${strengthText}</span>` : '';
+        }
+
+        function checkPasswordMatch() {
+            const match = document.getElementById('password-match') || createPasswordMatchIndicator();
+            const password1Val = password1.value;
+            const password2Val = password2.value;
+            
+            if (!password2Val) {
+                match.innerHTML = '';
+            } else if (password1Val === password2Val) {
+                match.innerHTML = '<span class="text-green-600 font-bold">✓ Passwords match</span>';
+            } else {
+                match.innerHTML = '<span class="text-red-600 font-bold">✗ Passwords do not match</span>';
+            }
+        }
+
+        function createPasswordStrengthIndicator() {
+            const div = document.createElement('div');
+            div.id = 'password-strength';
+            div.className = 'text-gray-700 text-sm mt-1';
+            password1.parentElement.appendChild(div);
+            return div;
+        }
+
+        function createPasswordMatchIndicator() {
+            const div = document.createElement('div');
+            div.id = 'password-match';
+            div.className = 'text-gray-700 text-sm mt-1';
+            password2.parentElement.appendChild(div);
+            return div;
+        }
+
+        // Select free plan by default
+        const freePlanCard = document.querySelector('[data-plan-id="{{ plans.0.id }}"]');
+        if (freePlanCard) {
+            selectPlan('{{ plans.0.id }}', freePlanCard);
+        }
+    });
+
+    // Check if plan is preselected from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedPlan = urlParams.get('plan');
+    if (preselectedPlan) {
+        const planCard = document.querySelector(`[data-plan-id="${preselectedPlan}"]`);
+        if (planCard) {
+            selectPlan(preselectedPlan, planCard);
+        }
+    }
+
+    // Form validation
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const terms = document.getElementById('terms');
+        if (!terms.checked) {
+            e.preventDefault();
+            showNotification('Please agree to the Terms of Service and Privacy Policy', 'error');
+            return;
+        }
+
+        const password1 = document.getElementById('password1').value;
+        const password2 = document.getElementById('password2').value;
+        
+        if (password1 !== password2) {
+            e.preventDefault();
+            showNotification('Passwords do not match', 'error');
+            return;
+        }
+
+        if (password1.length < 6) {
+            e.preventDefault();
+            showNotification('Password must be at least 6 characters long', 'error');
+            return;
+        }
+    });
+
+    function scrollToPlans() {
+    document.querySelector('.plan-card:first-child')?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+}
+
+// Handle plan card clicks - navigate to details page when clicking card (not button)
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to all plan cards
+    document.querySelectorAll('.plan-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking the select button or its children
+            if (e.target.closest('.select-plan-btn')) {
+                return;
+            }
+            const planId = this.getAttribute('data-plan-id');
+            window.location.href = `/plan-details/${planId}/`;
+        });
+    });
+
+    // Update select button click handlers to pass event
+    document.querySelectorAll('.select-plan-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const card = this.closest('.plan-card');
+            const planId = card.getAttribute('data-plan-id');
+            selectPlan(planId, card, e);
+        });
+    });
+
+    // Auto-select plan from URL parameter if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedPlan = urlParams.get('plan');
+    if (preselectedPlan) {
+        const planCard = document.querySelector(`[data-plan-id="${preselectedPlan}"]`);
+        if (planCard) {
+            // Use setTimeout to ensure DOM is fully loaded
+            setTimeout(() => {
+                selectPlan(preselectedPlan, planCard);
+            }, 100);
+        }
+    }
+});
+
+
+</script>
+{% endblock %}

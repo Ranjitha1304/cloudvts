@@ -1,0 +1,205 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">System Monitoring</h1>
+        <p class="text-gray-600 mt-2">Monitor system health and performance metrics</p>
+    </div>
+
+    <!-- System Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">System Status</p>
+                    <p class="mt-2 text-2xl font-bold text-green-600">Operational</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-server text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Uptime</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">99.9%</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-clock text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Response Time</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ response_time }}ms</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-tachometer-alt text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Connections</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ active_connections }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-plug text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- CPU & Memory Usage -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Resource Usage</h3>
+            <div class="space-y-6">
+                <!-- CPU Usage -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium text-gray-700">CPU Usage</span>
+                        <span class="font-bold text-gray-900">{{ cpu_usage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500" 
+                             style="width: {{ cpu_usage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Memory Usage -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium text-gray-700">Memory Usage</span>
+                        <span class="font-bold text-gray-900">{{ memory_usage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500" 
+                             style="width: {{ memory_usage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Disk Usage -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium text-gray-700">Disk Usage</span>
+                        <span class="font-bold text-gray-900">{{ disk_usage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-3 rounded-full transition-all duration-500" 
+                             style="width: {{ disk_usage }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Errors -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Recent System Errors</h3>
+            <div class="space-y-4">
+                {% for error in recent_errors %}
+                <div class="flex items-start space-x-3 p-3 bg-white/50 rounded-lg border-l-4 border-red-500">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">{{ error.message }}</p>
+                        <p class="text-sm text-gray-500">{{ error.timestamp|timesince }} ago</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-3xl text-green-500 mb-3"></i>
+                    <p>No recent errors</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="glass-card rounded-2xl p-6 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Performance Metrics</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-upload text-white text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Uploads Today</h4>
+                <p class="text-3xl font-bold text-blue-600 my-3">{{ uploads_today }}</p>
+                <p class="text-sm text-gray-500">{{ uploads_size|filesizeformat }} total</p>
+            </div>
+
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-download text-white text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Downloads Today</h4>
+                <p class="text-3xl font-bold text-green-600 my-3">{{ downloads_today }}</p>
+                <p class="text-sm text-gray-500">{{ downloads_size|filesizeformat }} total</p>
+            </div>
+
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Active Sessions</h4>
+                <p class="text-3xl font-bold text-purple-600 my-3">{{ active_sessions }}</p>
+                <p class="text-sm text-gray-500">Currently online</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Status -->
+    <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Backup Status</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-database text-green-600 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Last Backup</h4>
+                <p class="text-lg font-bold text-gray-700 my-2">{{ last_backup|date:"M d, H:i" }}</p>
+                <p class="text-sm text-gray-500">Successful</p>
+            </div>
+
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-hdd text-blue-600 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Backup Size</h4>
+                <p class="text-lg font-bold text-gray-700 my-2">{{ backup_size|filesizeformat }}</p>
+                <p class="text-sm text-gray-500">Compressed</p>
+            </div>
+
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-12 h-12 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-clock text-purple-600 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Next Backup</h4>
+                <p class="text-lg font-bold text-gray-700 my-2">{{ next_backup|date:"M d, H:i" }}</p>
+                <p class="text-sm text-gray-500">Scheduled</p>
+            </div>
+
+            <div class="bg-white/50 rounded-xl p-6 text-center">
+                <div class="w-12 h-12 mx-auto bg-yellow-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-history text-yellow-600 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-900">Retention</h4>
+                <p class="text-lg font-bold text-gray-700 my-2">30 days</p>
+                <p class="text-sm text-gray-500">Policy</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

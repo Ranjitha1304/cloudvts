@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .button { background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to CloudVTS!</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            <p>Thank you for registering with CloudVTS - your secure cloud storage solution.</p>
+            <p>You can now start uploading, managing, and sharing your files securely.</p>
+            <!-- <p style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+            </p> -->
+            <p>Features you can enjoy:</p>
+            <ul>
+                <li>Secure file storage</li>
+                <li>Easy file sharing</li>
+                <li>Multiple storage plans</li>
+                <li>24/7 access</li>
+            </ul>
+        </div>
+        <div class="footer">
+            <p>&copy; {% now "Y" %} CloudVTS. All rights reserved.</p>
+            <p>If you have any questions, contact our support team.</p>
+        </div>
+    </div>
+</body>
+</html>

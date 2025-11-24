@@ -1,0 +1,102 @@
+<!-- Create Folder Modal -->
+<div id="createFolderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300">
+    <div class="relative top-20 mx-auto p-5 w-96 modal-enter">
+        <div class="glass-card rounded-2xl shadow-2xl border border-white/20">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Create New Folder</h3>
+                    <button onclick="hideCreateFolderModal()" 
+                            class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="createFolderForm">
+                    {% csrf_token %}
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Folder Name</label>
+                        <input type="text" name="name" required
+                               class="w-full px-4 py-3 bg-white/80 border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg"
+                               placeholder="Enter folder name">
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideCreateFolderModal()" 
+                                class="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-200 transform hover:scale-105">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="btn-gradient px-6 py-3 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                            Create Folder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showCreateFolderModal() {
+        const modal = document.getElementById('createFolderModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.style.opacity = '1', 10);
+    }
+
+    function hideCreateFolderModal() {
+        const modal = document.getElementById('createFolderModal');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('createFolderForm').reset();
+        }, 300);
+    }
+
+    // Create folder form submission
+    document.getElementById('createFolderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+        
+        fetch('/folder/create/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Created!';
+                showNotification('Folder created successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        })
+        .catch(error => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            showNotification('Error creating folder: ' + error.message, 'error');
+        });
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('createFolderModal');
+        if (event.target === modal) {
+            hideCreateFolderModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            hideCreateFolderModal();
+        }
+    });
+</script>

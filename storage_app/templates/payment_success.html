@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Success Card -->
+        <div class="glass-card rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-500">
+            <div class="p-8">
+                <!-- Animated Success Icon -->
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg floating mb-6">
+                        <i class="fas fa-check text-white text-3xl"></i>
+                    </div>
+                    
+                    {% if is_new_registration %}
+                    <!-- New Registration Success -->
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                        Welcome to Vetri Cloud!
+                    </h2>
+                    <p class="text-blue-100 mt-2">Your account has been created successfully</p>
+                    {% else %}
+                    <!-- Existing User Upgrade -->
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                        Payment Successful!
+                    </h2>
+                    <p class="text-blue-100 mt-2">Welcome to your new plan</p>
+                    {% endif %}
+                </div>
+
+                <!-- Plan Details -->
+                {% if plan %}
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-white mb-2">{{ plan.name }} Plan</h3>
+                        <p class="text-2xl font-bold text-green-300 mb-2">₹{{ plan.price }}/year</p>
+                        <p class="text-blue-100">{{ plan.max_storage_size|filesizeformat }} Storage</p>
+                    </div>
+                    
+                    <div class="mt-4 space-y-2">
+                        {% for feature in plan.features %}
+                        <div class="flex items-center text-blue-100">
+                            <i class="fas fa-check-circle text-green-300 mr-3"></i>
+                            <span class="text-sm">{{ feature }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Next Steps -->
+                <div class="bg-blue-500/20 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-blue-300/30">
+                    <h4 class="text-white font-semibold mb-2 flex items-center">
+                        <i class="fas fa-rocket mr-2"></i>
+                        {% if is_new_registration %}
+                        Get Started
+                        {% else %}
+                        What's Next?
+                        {% endif %}
+                    </h4>
+                    <ul class="text-blue-100 text-sm space-y-1">
+                        {% if is_new_registration %}
+                        <li class="flex items-center">
+                            <i class="fas fa-check mr-2 text-green-300 text-xs"></i>
+                            Your account is ready to use
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check mr-2 text-green-300 text-xs"></i>
+                            You've been automatically logged in
+                        </li>
+                        {% endif %}
+                        <li class="flex items-center">
+                            <i class="fas fa-check mr-2 text-green-300 text-xs"></i>
+                            Your storage limit has been updated
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check mr-2 text-green-300 text-xs"></i>
+                            You can now upload larger files
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check mr-2 text-green-300 text-xs"></i>
+                            Access to premium features unlocked
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-4">
+                    <a href="{% url 'dashboard' %}" 
+                       class="w-full btn-gradient text-white py-4 px-6 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Go to Dashboard</span>
+                    </a>
+                    
+                    <a href="{% url 'file_list' %}" 
+                       class="w-full bg-white/10 text-white py-4 px-6 rounded-2xl font-semibold text-lg border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
+                        <i class="fas fa-folder"></i>
+                        <span>View My Files</span>
+                    </a>
+                </div>
+
+                <!-- Support Info -->
+                <div class="text-center mt-6">
+                    <p class="text-blue-100 text-sm">
+                        Need help? 
+                        <a href="mailto:support@vetricloud.com" class="text-white underline hover:text-blue-200">
+                            Contact Support
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Email -->
+        <div class="text-center">
+            <p class="text-blue-100 text-sm flex items-center justify-center space-x-2">
+                <i class="fas fa-envelope text-green-300"></i>
+                <span>A confirmation email has been sent to your inbox</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .floating {
+        animation: floating 2s ease-in-out infinite;
+    }
+
+    @keyframes floating {
+        0% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-10px) scale(1.05); }
+        100% { transform: translateY(0px) scale(1); }
+    }
+</style>
+
+<script>
+    // Celebrate with confetti
+    document.addEventListener('DOMContentLoaded', function() {
+        // Simple confetti effect
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.top = '0';
+            container.style.left = '0';
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.pointerEvents = 'none';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = '50%';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-20px';
+                confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+                container.appendChild(confetti);
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                container.remove();
+            }, 5000);
+        }
+
+        // Add CSS for confetti animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Start confetti
+        createConfetti();
+        
+        // Auto-redirect to dashboard after 5 seconds
+        setTimeout(() => {
+            window.location.href = "{% url 'dashboard' %}";
+        }, 5000);
+    });
+</script>
+{% endblock %}

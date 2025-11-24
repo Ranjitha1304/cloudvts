@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Mobile styles for starred items header */
+@media (max-width: 768px) {
+    /* More specific selector - target only the header inside glass-card */
+    .glass-card .flex.justify-between.items-center {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    /* Target only the back button in this specific context */
+    .glass-card .bg-gray-600 {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Target only the heading in this context */
+    .glass-card .text-3xl.font-bold.text-gray-800.mb-2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Target only the icon and text in this context */
+    .glass-card .flex.items-center.space-x-3 {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+    .glass-card .bg-gray-600 span {
+        font-size: 0.875rem;
+    }
+    
+    .glass-card .text-gray-600 {
+        font-size: 0.875rem;
+    }
+}
+</style>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center space-x-3">
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <span>Starred Items</span>
+                    </h1>
+                    <p class="text-gray-600">Your favorite files and folders in one place</p>
+                </div>
+                <a href="{% url 'file_list' %}" 
+                   class="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Files</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Starred Folders -->
+    {% if starred_folders %}
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-6 border-b border-gray-200/50">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-folder text-yellow-500"></i>
+                <span>Starred Folders</span>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {{ starred_folders|length }}
+                </span>
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {% for folder in starred_folders %}
+                <div class="folder-item bg-white/80 rounded-2xl p-5 border-2 border-yellow-300 transition-all duration-300 transform hover:scale-105 group cursor-pointer shadow-lg hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center flex-1">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors mr-4">
+                                <i class="fas fa-folder text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <a href="{% url 'file_list_folder' folder.id %}" class="block">
+                                    <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-yellow-600 transition-colors">
+                                        {{ folder.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        {{ folder.get_files_count }} file{{ folder.get_files_count|pluralize }}
+                                    </p>
+                                </a>
+                            </div>
+                        </div>
+                        <button onclick="toggleFolderStar('{{ folder.id }}', this)" 
+                                class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 hover:bg-yellow-200 transition-all duration-200 transform hover:scale-110"
+                                title="Remove from starred">
+                            <i class="fas fa-star text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Starred Files -->
+    <div class="glass-card rounded-2xl">
+        <div class="px-6 py-6 border-b border-gray-200/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-file text-yellow-500"></i>
+                <span>Starred Files</span>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {{ starred_files|length }}
+                </span>
+            </h2>
+        </div>
+        
+        <div class="px-6 py-6">
+            {% if starred_files %}
+            <div class="overflow-x-auto rounded-2xl">
+                <table class="min-w-full divide-y divide-gray-200/50">
+                    <thead class="bg-white/80">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                File
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Type
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Size
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Uploaded
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white/50 divide-y divide-gray-200/30">
+                        {% for file in starred_files %}
+                        <tr class="file-item hover:bg-white/80 transition-all duration-300 group"
+                            ondblclick="window.open('{% url 'preview_file' file.id %}', '_blank')">
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                                        {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                        {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                        {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                        {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                        {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                        {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                        {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                        {% else %}from-gray-400 to-gray-600{% endif %} 
+                                        flex items-center justify-center shadow-md">
+                                        <i class="fas 
+                                            {% if file.file_type == '.pdf' %}fa-file-pdf
+                                            {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                            {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                            {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                            {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                            {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                            {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                            {% else %}fa-file{% endif %} 
+                                            text-white text-sm">
+                                        </i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <span class="file-name text-sm font-semibold text-gray-900 truncate max-w-xs">
+                                                {{ file.name }}
+                                            </span>
+                                            <div class="flex space-x-1">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 shadow-sm">
+                                                    <i class="fas fa-star mr-1 text-xs"></i>Starred
+                                                </span>
+                                                {% if file.is_public %}
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 shadow-sm">
+                                                        <i class="fas fa-globe-americas mr-1 text-xs"></i>Public
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="file-type text-sm font-medium text-gray-600 uppercase bg-gray-100 rounded-full px-3 py-1">
+                                    {{ file.file_type|default:"Unknown" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="file-size text-sm font-semibold text-gray-700">{{ file.size|filesizeformat }}</span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="file-uploaded text-sm text-gray-600">{{ file.uploaded_at|date:"M d, Y" }}</span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <div class="flex space-x-2">
+                                    <button onclick="toggleFileStar('{{ file.id }}', this)" 
+                                            class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600 hover:bg-yellow-200 transition-all duration-200 transform hover:scale-110"
+                                            title="Remove from starred">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                    <button onclick="window.open('{% url 'preview_file' file.id %}', '_blank')" 
+                                            class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-all duration-200 transform hover:scale-110"
+                                            title="Preview">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{% url 'download_file' file.id %}" 
+                                       class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 hover:bg-green-200 transition-all duration-200 transform hover:scale-110"
+                                       title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="floating mb-6">
+                    <i class="fas fa-star text-8xl text-gray-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">No starred items yet</h3>
+                <p class="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                    Star files and folders to see them here for quick access.
+                </p>
+                <a href="{% url 'file_list' %}" 
+                   class="btn-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                    <i class="fas fa-folder"></i>
+                    <span>Browse Files</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Star functionality for starred page
+    function toggleFileStar(fileId, element) {
+        const starBtn = element;
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        starBtn.disabled = true;
+        
+        fetch(`/file/star/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && !data.is_starred) {
+                // Remove the file row with animation
+                const fileRow = starBtn.closest('.file-item');
+                fileRow.style.opacity = '0';
+                fileRow.style.transform = 'translateX(100px)';
+                setTimeout(() => fileRow.remove(), 500);
+                showNotification('File removed from starred', 'info');
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+            starBtn.disabled = false;
+        });
+    }
+
+    function toggleFolderStar(folderId, element) {
+        const starBtn = element;
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        starBtn.disabled = true;
+        
+        fetch(`/folder/star/${folderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && !data.is_starred) {
+                // Remove the folder with animation
+                const folderItem = starBtn.closest('.folder-item');
+                folderItem.style.opacity = '0';
+                folderItem.style.transform = 'translateX(100px)';
+                setTimeout(() => folderItem.remove(), 500);
+                showNotification('Folder removed from starred', 'info');
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+            starBtn.disabled = false;
+        });
+    }
+
+    // Initialize double click
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDoubleClick('.file-item', function(element) {
+            const fileId = element.querySelector('button[onclick*="toggleFileStar"]')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (fileId) {
+                window.open(`/file/preview/${fileId}/`, '_blank');
+            }
+        });
+    });
+
+// Add this to dashboard.html, file_list.html, etc.
+document.addEventListener('DOMContentLoaded', function() {
+    // Periodically check session validity
+    setInterval(() => {
+        const sessionActive = sessionStorage.getItem('cloud_storage_session_active');
+        const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+        
+        if (!sessionActive && !isRemembered) {
+            // Session expired, redirect to login
+            window.location.href = '/login/?message=session_expired';
+        }
+    }, 30000); // Check every 30 seconds
+});
+
+</script>
+{% endblock %}

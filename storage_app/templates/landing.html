@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="text-center">
+                <!-- Animated Logo -->
+                <div class="mb-8 floating">
+                    <div class="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto backdrop-blur-sm border border-white/30">
+                        <i class="fas fa-cloud text-6xl text-white"></i>
+                    </div>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6">
+                    Vetri Cloud Storage
+                </h1>
+                <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                    Secure, reliable cloud storage for all your files. Access anywhere, anytime with enterprise-grade security.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                    <a href="{% url 'pricing_plans' %}" 
+                       class="btn-gradient text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>Get Started Free
+                    </a>
+                    <a href="{% url 'login' %}" 
+                       class="glass-card text-white px-8 py-4 rounded-2xl font-bold text-lg border border-white/30 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="bg-white/10 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-4">Why Choose Vetri Cloud?</h2>
+                <p class="text-xl text-blue-100">Enterprise features at an affordable price</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card rounded-3xl p-8 text-center transform transition-all duration-300 hover:scale-105">
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-shield-alt text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Bank-Grade Security</h3>
+                    <p class="text-blue-100">Your files are encrypted with AES-256 encryption and stored securely in our global data centers.</p>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-8 text-center transform transition-all duration-300 hover:scale-105">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-bolt text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Lightning Fast</h3>
+                    <p class="text-blue-100">Upload and download files at blazing speeds with our global CDN and optimized infrastructure.</p>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-8 text-center transform transition-all duration-300 hover:scale-105">
+                    <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-mobile-alt text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Access Anywhere</h3>
+                    <p class="text-blue-100">Access your files from any device - desktop, tablet, or mobile with our responsive web interface.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Preview Section -->
+    <div class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
+                <p class="text-xl text-blue-100">No hidden fees. Cancel anytime.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+                {% for plan in plans %}
+                <div class="glass-card rounded-3xl p-8 transform transition-all duration-300 hover:scale-105 {% if plan.plan_type == 'pro' %}border-2 border-yellow-400{% else %}border border-white/20{% endif %}">
+                    {% if plan.plan_type == 'pro' %}
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-full text-sm font-bold">
+                            MOST POPULAR
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">{{ plan.name }}</h3>
+                        <div class="flex items-baseline justify-center mb-4">
+                            <span class="text-4xl font-bold text-white">₹{{ plan.price }}</span>
+                            <span class="text-blue-100 ml-2">/year</span>
+                        </div>
+                        <p class="text-lg font-semibold text-blue-100">
+                            {{ plan.max_storage_size|filesizeformat }} Storage
+                        </p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        {% for feature in plan.features %}
+                        <li class="flex items-center text-blue-100">
+                            <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            <span>{{ feature }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="text-center">
+                        {% if plan.plan_type == 'free' %}
+                        <a href="{% url 'register' %}?plan={{ plan.id }}" 
+                           class="w-full bg-green-500 hover:bg-green-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 block no-underline">
+                            Get Started Free
+                        </a>
+                        {% else %}
+                        <a href="{% url 'plan_details' plan.id %}" 
+                           class="w-full {% if plan.plan_type == 'pro' %}btn-gradient{% else %}bg-blue-600 hover:bg-blue-700{% endif %} text-white py-4 px-6 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 block no-underline">
+                            View Details
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+<div class="text-center mt-1">
+    <a href="{% url 'pricing_plans' %}" 
+       class="glass-card text-white px-8 py-4 rounded-2xl font-bold text-lg border border-white/30 hover:bg-white/10 transition-all duration-300 inline-flex items-center space-x-2">
+        <span>Compare All Plans</span>
+        <i class="fas fa-arrow-right"></i>
+    </a>
+                <p class="text-blue-100 mt-4">No credit card required • 5GB free forever</p>
+
+</div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <!-- <div class=" py-16">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
+            <p class="text-xl text-blue-100 mb-8">Join thousands of users who trust Vetri Cloud with their files</p>
+            <a href="{% url 'register' %}" 
+               class="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Start Your Free Trial</span>
+            </a>
+        </div>
+    </div> -->
+</div>
+{% endblock %}

@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+    /* Mobile styles for trash header */
+@media (max-width: 768px) {
+    .glass-card .flex.justify-between.items-center {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .glass-card .flex.space-x-4 {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .glass-card .bg-green-600,
+    .glass-card .bg-red-600,
+    .glass-card .bg-gray-600 {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+    }
+    
+    .glass-card .text-3xl.font-bold.text-gray-800.mb-2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .glass-card .flex.items-center.space-x-3 {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+    .glass-card .bg-green-600 span,
+    .glass-card .bg-red-600 span,
+    .glass-card .bg-gray-600 span {
+        font-size: 0.875rem;
+    }
+    
+    .glass-card .text-gray-600 {
+        font-size: 0.875rem;
+    }
+}
+
+</style>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center space-x-3">
+                        <i class="fas fa-trash text-red-500"></i>
+                        <span>Trash</span>
+                    </h1>
+                    <p class="text-gray-600">Files in trash will be automatically deleted after 30 days</p>
+                </div>
+                <div class="flex space-x-4">
+                    {% if files %}
+                    <button onclick="restoreAllFiles()" 
+                            class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                        <i class="fas fa-undo"></i>
+                        <span>Restore All</span>
+                    </button>
+                    <button onclick="emptyTrash()" 
+                            class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                        <i class="fas fa-broom"></i>
+                        <span>Empty Trash</span>
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'file_list' %}" 
+                       class="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Files</span>
+                    </a>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Trash Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Files in Trash</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ trash_count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                    <i class="fas fa-trash text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Auto Delete In</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">30 days</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Total Size</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ total_size|filesizeformat }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <i class="fas fa-hdd text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+                <!-- Add this section after the files table in trash.html -->
+{% if folders %}
+<div class="mt-8 mb-8">
+    <h3 class="text-lg font-bold text-gray-800 mb-4">Deleted Folders</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for folder in folders %}
+        <div class="glass-card rounded-2xl p-4 transform transition-all duration-300 hover:scale-105">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-folder text-yellow-500 text-xl"></i>
+                    <span class="font-semibold text-gray-800">{{ folder.name }}</span>
+                </div>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <i class="fas fa-trash mr-1 text-xs"></i>Trash
+                </span>
+            </div>
+            <div class="text-sm text-gray-600 space-y-1">
+                <p>Deleted: {{ folder.deleted_at|date:"M d, Y H:i" }}</p>
+                <p class="{% if folder.days_until_auto_delete <= 7 %}text-red-600 font-semibold{% endif %}">
+                    Auto delete: {{ folder.auto_delete_date|date:"M d, Y H:i" }}
+                    {% if folder.days_until_auto_delete <= 7 %}
+                    <span class="inline-block ml-1 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                        {{ folder.days_until_auto_delete }} day{{ folder.days_until_auto_delete|pluralize }} left
+                    </span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex space-x-2 mt-3">
+                <button onclick="restoreFolder('{{ folder.id }}')" 
+                        class="flex-1 bg-green-100 text-green-600 py-2 rounded-xl font-semibold hover:bg-green-200 transition-all duration-200 flex items-center justify-center space-x-2">
+                    <i class="fas fa-undo"></i>
+                    <span>Restore</span>
+                </button>
+                <button onclick="permanentDeleteFolder('{{ folder.id }}')" 
+                        class="flex-1 bg-red-100 text-red-600 py-2 rounded-xl font-semibold hover:bg-red-200 transition-all duration-200 flex items-center justify-center space-x-2">
+                    <i class="fas fa-times"></i>
+                    <span>Delete</span>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+    <!-- Trash Files -->
+    <div class="glass-card rounded-2xl">
+        <div class="px-6 py-6 border-b border-gray-200/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-file text-red-500"></i>
+                <span>Deleted Files</span>
+            </h2>
+            <span class="text-sm font-medium text-gray-600 bg-white/50 rounded-full px-4 py-2">
+                {{ files|length }} file{{ files|length|pluralize }} in trash
+            </span>
+        </div>
+        
+        <div class="px-6 py-6">
+            {% if files %}
+            <div class="overflow-x-auto rounded-2xl">
+                <table class="min-w-full divide-y divide-gray-200/50">
+                    <thead class="bg-white/80">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-lg font-semibold text-gray-800 uppercase tracking-wider">
+                                File
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-lg font-semibold text-gray-800 uppercase tracking-wider">
+                                Size
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-lg font-semibold text-gray-800 uppercase tracking-wider">
+                                Deleted On
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-lg font-semibold text-gray-800 uppercase tracking-wider">
+                                Auto Delete On
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-lg font-semibold text-gray-800 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white/50 divide-y divide-gray-200/30">
+                        {% for file in files %}
+                        <tr class="file-item hover:bg-white/80 transition-all duration-300 group">
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                                        {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                        {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                        {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                        {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                        {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                        {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                        {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                        {% else %}from-gray-400 to-gray-600{% endif %} 
+                                        flex items-center justify-center shadow-md opacity-80">
+                                        <i class="fas 
+                                            {% if file.file_type == '.pdf' %}fa-file-pdf
+                                            {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                            {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                            {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                            {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                            {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                            {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                            {% else %}fa-file{% endif %} 
+                                            text-white text-sm">
+                                        </i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <span class="file-name text-sm font-semibold text-gray-900 truncate max-w-xs opacity-70">
+                                                {{ file.name }}
+                                            </span>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 shadow-sm">
+                                                <i class="fas fa-trash mr-1 text-xs"></i>Trash
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-700">
+                                            Type: {{ file.file_type|default:"Unknown"|upper }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="file-size text-sm font-semibold text-gray-700 opacity-70">{{ file.size|filesizeformat }}</span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="file-deleted text-sm text-gray-600">
+                                    {{ file.deleted_at|date:"M d, Y H:i" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <span class="auto-delete text-sm font-semibold {% if file.days_until_auto_delete <= 7 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                    {{ file.auto_delete_date|date:"M d, Y H:i" }}
+                                    {% if file.days_until_auto_delete <= 7 %}
+                                    <span class="inline-block ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                        {{ file.days_until_auto_delete }} day{{ file.days_until_auto_delete|pluralize }} left
+                                    </span>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <div class="flex space-x-2">
+                                    <button onclick="restoreFile('{{ file.id }}')" 
+                                            class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 hover:bg-green-200 transition-all duration-200 transform hover:scale-110 group"
+                                            title="Restore File">
+                                        <i class="fas fa-undo group-hover:animate-spin"></i>
+                                    </button>
+                                    <button onclick="permanentDeleteFile('{{ file.id }}')" 
+                                            class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110 group"
+                                            title="Permanently Delete">
+                                        <i class="fas fa-times group-hover:animate-pulse"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty Trash State -->
+            <div class="text-center py-16">
+                <div class="floating mb-6">
+                    <i class="fas fa-trash-alt text-8xl text-gray-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">Trash is Empty</h3>
+                <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                    Deleted files will appear here. They'll be automatically removed after 30 days.
+                </p>
+                <a href="{% url 'file_list' %}" 
+                   class="btn-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                    <i class="fas fa-folder"></i>
+                    <span>Browse Files</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Restore file from trash
+    function restoreFile(fileId) {
+        const button = event.target.closest('button');
+        const originalHtml = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        fetch(`/file/restore/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Remove the file row with animation
+                const fileRow = button.closest('.file-item');
+                fileRow.style.opacity = '0';
+                fileRow.style.transform = 'translateX(-100px)';
+                setTimeout(() => fileRow.remove(), 500);
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        });
+    }
+
+    // Restore all files
+    function restoreAllFiles() {
+        if (confirm('Restore all files from trash?')) {
+            fetch(`/file/restore-all/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Remove all file rows with animation
+                    const fileRows = document.querySelectorAll('.file-item');
+                    fileRows.forEach((row, index) => {
+                        setTimeout(() => {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-100px)';
+                        }, index * 100);
+                    });
+                    setTimeout(() => location.reload(), 500 + (fileRows.length * 100));
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error: ' + error.message, 'error');
+            });
+        }
+    }
+
+    // Permanently delete file
+    function permanentDeleteFile(fileId) {
+        if (confirm('Permanently delete this file? This action cannot be undone.')) {
+            const button = event.target.closest('button');
+            const originalHtml = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+            
+            fetch(`/file/permanent-delete/${fileId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Remove the file row with animation
+                    const fileRow = button.closest('.file-item');
+                    fileRow.style.opacity = '0';
+                    fileRow.style.transform = 'translateX(100px)';
+                    setTimeout(() => fileRow.remove(), 500);
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error: ' + error.message, 'error');
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+            });
+        }
+    }
+
+    // Empty entire trash
+    function emptyTrash() {
+        if (confirm('Permanently delete all files in trash? This action cannot be undone.')) {
+            fetch(`/file/empty-trash/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Remove all file rows with animation
+                    const fileRows = document.querySelectorAll('.file-item');
+                    fileRows.forEach((row, index) => {
+                        setTimeout(() => {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(100px)';
+                        }, index * 100);
+                    });
+                    setTimeout(() => location.reload(), 500 + (fileRows.length * 100));
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error: ' + error.message, 'error');
+            });
+        }
+    }
+
+    // Restore folder from trash
+function restoreFolder(folderId) {
+    if (confirm('Restore this folder and all its contents?')) {
+        fetch(`/folder/restore/${folderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+        });
+    }
+}
+
+// Permanently delete folder
+function permanentDeleteFolder(folderId) {
+    if (confirm('Permanently delete this folder and all its contents? This action cannot be undone.')) {
+        fetch(`/folder/permanent-delete/${folderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+        });
+    }
+}
+
+
+// Add this to dashboard.html, file_list.html, etc.
+document.addEventListener('DOMContentLoaded', function() {
+    // Periodically check session validity
+    setInterval(() => {
+        const sessionActive = sessionStorage.getItem('cloud_storage_session_active');
+        const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+        
+        if (!sessionActive && !isRemembered) {
+            // Session expired, redirect to login
+            window.location.href = '/login/?message=session_expired';
+        }
+    }, 30000); // Check every 30 seconds
+});
+
+</script>
+{% endblock %}

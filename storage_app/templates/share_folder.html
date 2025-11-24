@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-folder text-yellow-600 text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-800">{{ folder.name }}</h1>
+                    <p class="text-gray-600">
+                        Shared folder containing {{ file_count }} file{{ file_count|pluralize }}
+                    </p>
+                    {% if share_link.expires_at %}
+                    <p class="text-sm text-gray-500 mt-1">
+                        Expires: {{ share_link.expires_at|date:"M d, Y H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Files List -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Files in this folder</h2>
+            </div>
+            <!-- Add download all button in the shared folder template -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">{{ folder.name }}</h1>
+        <p class="text-gray-600">{{ file_count }} file{{ file_count|pluralize }} in this folder</p>
+    </div>
+    <div class="flex space-x-3">
+        <!-- Download All Button -->
+        <a href="{% url 'download_shared_folder' token=share_token %}" 
+           class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+            <i class="fas fa-download"></i>
+            <span>Download All</span>
+        </a>
+    </div>
+</div>
+            {% if files %}
+            <div class="divide-y divide-gray-200">
+                {% for file in files %}
+                <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                                {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                {% else %}from-gray-400 to-gray-600{% endif %} 
+                                flex items-center justify-center">
+                                <i class="fas 
+                                    {% if file.file_type == '.pdf' %}fa-file-pdf
+                                    {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                    {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                    {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                    {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                    {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                    {% else %}fa-file{% endif %} 
+                                    text-white text-sm">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">{{ file.name }}</h3>
+                                <p class="text-sm text-gray-600">{{ file.size|filesizeformat }} • {{ file.file_type|upper }}</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'download_file' file.id %}" 
+                           class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                            <i class="fas fa-download"></i>
+                            <span>Download</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No files in this folder</h3>
+                <p class="text-gray-500">This shared folder is empty.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

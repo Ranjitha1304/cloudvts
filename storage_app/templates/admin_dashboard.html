@@ -1,0 +1,648 @@
+<!-- templates/admin_dashboard.html -->
+{% extends 'admin_base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Admin Header -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center floating">
+                        <i class="fas fa-crown text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
+                        <p class="text-blue-100 text-lg">Complete system overview and management</p>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{% url 'all_users' %}" class="btn-gradient text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 hover:scale-105">
+                        <i class="fas fa-users"></i>
+                        <span>View All Users</span>
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 hover:scale-105 border border-white/30">
+                        <i class="fas fa-cog"></i>
+                        <span>Django Admin</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <!-- Total Users -->
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group cursor-pointer">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-lg font-medium text-blue-100 group-hover:text-white transition-colors">Total Users</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ total_users|intcomma }}</p>
+                    <p class="text-xs text-purple-900 font-medium mt-1 flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +{{ new_users_today }} today
+                    </p>
+                </div>
+                <div class="w-12 h-12 bg-blue-400/30 rounded-xl flex items-center justify-center group-hover:bg-blue-400/50 transition-colors border border-blue-300/30">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Storage Usage -->
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group cursor-pointer">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-lg font-medium text-blue-100 group-hover:text-white transition-colors">Total Storage</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ total_storage|filesizeformat }}</p>
+                    <!-- <p class="text-xs text-blue-200 font-medium mt-1">
+                        {{ total_files|intcomma }} files
+                    </p> -->
+                </div>
+                <div class="w-12 h-12 bg-green-400/30 rounded-xl flex items-center justify-center group-hover:bg-green-400/50 transition-colors border border-green-300/30">
+                    <i class="fas fa-hdd text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paid Users -->
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group cursor-pointer">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-lg font-medium text-blue-100 group-hover:text-white transition-colors">Paid Users</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ active_subscriptions|intcomma }}</p>
+                    <!-- <p class="text-xs text-purple-300 font-medium mt-1">
+                        Basic/Professional plans
+                    </p> -->
+                </div>
+                <div class="w-12 h-12 bg-purple-400/30 rounded-xl flex items-center justify-center group-hover:bg-purple-400/50 transition-colors border border-purple-300/30">
+                    <i class="fas fa-crown text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Revenue -->
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group cursor-pointer">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-lg font-medium text-blue-100 group-hover:text-white transition-colors">Revenue</p>
+                    <p class="mt-2 text-3xl font-bold text-white">₹{{ total_revenue|intcomma }}</p>
+                    <!-- <p class="text-xs text-yellow-300 font-medium mt-1">
+                        From paid plans
+                    </p> -->
+                </div>
+                <div class="w-12 h-12 bg-yellow-400/30 rounded-xl flex items-center justify-center group-hover:bg-yellow-400/50 transition-colors border border-yellow-300/30">
+                    <i class="fas fa-rupee-sign text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Recent Users -->
+        <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.02]">
+            <div class="px-6 py-6 border-b border-white/20">
+                <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-plus text-white"></i>
+                    </div>
+                    <span>Recent Users</span>
+                    <span class="text-blue-200 text-sm font-normal">(Last Registered)</span>
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for user in recent_users %}
+                    <div class="flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-purple-900">{{ user.username }}</p>
+                                <p class="text-sm text-blue-200">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-purple-900">
+                                {% if user.userprofile.storage_plan %}
+                                    {{ user.userprofile.storage_plan.name }}
+                                {% else %}
+                                    <span class="text-gray-400">No Plan</span>
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-blue-200">{{ user.date_joined|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-blue-200">
+                        <i class="fas fa-users text-4xl mb-4 opacity-50"></i>
+                        <p>No users found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Storage Users -->
+        <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.02]">
+            <div class="px-6 py-6 border-b border-white/20">
+                <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <span>Top Storage Users</span>
+                    <span class="text-green-200 text-sm font-normal">(Highest Usage)</span>
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for profile in top_storage_users %}
+                    <div class="flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-purple-900">{{ profile.user.username }}</p>
+                                <p class="text-sm text-blue-200">{{ profile.user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-md font-medium text-white">{{ profile.used_storage|filesizeformat }}</p>
+                            <p class="text-md text-blue-200">
+                                {% if profile.storage_plan %}
+                                    {{ profile.storage_plan.name }}
+                                {% else %}
+                                    <span class="text-gray-400">No Plan</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-green-200">
+                        <i class="fas fa-hdd text-4xl mb-4 opacity-50"></i>
+                        <p>No storage data found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Distribution & Analytics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Plan Distribution -->
+        <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.02]">
+            <div class="px-6 py-6 border-b border-white/20">
+                <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-white"></i>
+                    </div>
+                    <span>Plan Distribution</span>
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for plan in plan_distribution %}
+                    <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl hover:from-purple-500/30 hover:to-blue-500/30 transition-all duration-300 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-crown text-purple-700"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-white">{{ plan.storage_plan__name|default:"Free Plan" }}</p>
+                                <!-- <p class="text-sm text-purple-200">Users on this plan</p> -->
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold text-purple-600">{{ plan.count }}</p>
+                            <p class="text-sm text-purple-200">users</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-purple-200">
+                        <i class="fas fa-crown text-4xl mb-4 opacity-50"></i>
+                        <p>No plan distribution data</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Analytics -->
+<!-- Paid Users Analytics -->
+<!-- Paid Users Analytics -->
+<div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.02]">
+    <div class="px-6 py-6 border-b border-white/20">
+        <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-chart-line text-white"></i>
+            </div>
+            <span>Paid Plans Overview</span>
+        </h2>
+        <p class="text-sm text-orange-200 mt-1">All paid plans with user counts</p>
+    </div>
+    <div class="p-6">
+        <div class="space-y-4">
+            {% for sub in subscription_analytics %}
+            <div class="flex items-center justify-between p-4 
+                {% if sub.count > 0 %}
+                    bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30
+                {% else %}
+                    bg-gradient-to-r from-gray-500/10 to-gray-600/10 hover:from-gray-500/20 hover:to-gray-600/20
+                {% endif %}
+                rounded-2xl transition-all duration-300 group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 
+                        {% if sub.count > 0 %}bg-white/20{% else %}bg-gray-400/20{% endif %} 
+                        rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        {% if sub.plan_type == 'pro' %}
+                            <i class="fas fa-crown {% if sub.count > 0 %}text-orange-300{% else %}text-gray-500{% endif %}"></i>
+                        {% elif sub.plan_type == 'basic' %}
+                            <i class="fas fa-star {% if sub.count > 0 %}text-orange-300{% else %}text-gray-400{% endif %}"></i>
+                        {% elif sub.plan_type == 'enterprise' %}
+                            <i class="fas fa-rocket {% if sub.count > 0 %}text-orange-300{% else %}text-gray-400{% endif %}"></i>
+                        {% else %}
+                            <i class="fas fa-bolt {% if sub.count > 0 %}text-orange-300{% else %}text-gray-400{% endif %}"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="font-semibold {% if sub.count > 0 %}text-white{% else %}text-gray-500{% endif %}">
+                            {{ sub.plan_name }} Plan
+                        </p>
+                        <p class="text-sm {% if sub.count > 0 %}text-orange-200{% else %}text-gray-500{% endif %}">
+                            ₹{{ sub.price }}/year
+                            {% if sub.count == 0 %}
+                                • No users
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold {% if sub.count > 0 %}text-orange-300{% else %}text-gray-500{% endif %}">
+                        {{ sub.count }}
+                    </p>
+                    <p class="text-xs {% if sub.count > 0 %}text-orange-200{% else %}text-gray-500{% endif %}">
+                        {% if sub.count == 1 %}user{% else %}users{% endif %}
+                    </p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8 text-orange-200">
+                <i class="fas fa-bolt text-4xl mb-4 opacity-50"></i>
+                <p>No paid plans configured</p>
+                <p class="text-sm mt-2 text-orange-300">Setup paid plans in admin</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Summary of paid users -->
+        <div class="mt-6 p-4 bg-white/10 rounded-xl">
+            <div class="grid grid-cols-3 gap-4 text-white text-center">
+                <div>
+                    <p class="text-xxl text-purple-800">Total Paid Users</p>
+                    <p class="text-xl text-black font-bold">{{ active_subscriptions }}</p>
+                </div>
+                <div>
+                    <p class="text-xxl text-purple-800">Monthly Revenue</p>
+                    <p class="text-xl text-black font-bold">₹{{ total_revenue }}</p>
+                </div>
+                <div>
+                    <p class="text-xxl text-purple-800">Active Plans</p>
+                    <p class="text-xl text-black font-bold">{{ subscription_analytics|length }}</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+    </div>
+
+
+
+    <!-- System Overview -->
+    <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-6 border-b border-white/20">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-info-circle text-white"></i>
+                </div>
+                <span>System Overview</span>
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
+                    <div class="w-16 h-16 bg-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-400/50">
+                        <i class="fas fa-user-check text-blue-800 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Active Today</h3>
+                    <p class="text-2xl font-bold text-blue-800">{{ active_today }}</p>
+                    <p class="text-sm text-blue-700">users logged in</p>
+                </div>
+                
+                <!-- <div class="text-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
+                    <div class="w-16 h-16 bg-green-500/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-400/50">
+                        <i class="fas fa-file-upload text-green-300 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Total Files</h3>
+                    <p class="text-2xl font-bold text-green-300">{{ total_files|intcomma }}</p>
+                    <p class="text-sm text-green-200">files stored</p>
+                </div> -->
+                
+                <div class="text-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
+                    <div class="w-16 h-16 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-400/50">
+                        <i class="fas fa-chart-line text-blue-800 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Growth Rate</h3>
+                    <p class="text-2xl font-bold text-blue-800">+{{ new_users_today }}</p>
+                    <p class="text-sm text-blue-800">new users today</p>
+                </div>
+                
+                <div class="text-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
+                    <div class="w-16 h-16 bg-yellow-500/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-400/50">
+                        <i class="fas fa-rupee-sign text-blue-800 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Monthly Revenue</h3>
+                    <p class="text-2xl font-bold text-blue-800">₹{{ total_revenue|intcomma }}</p>
+                    <!-- <p class="text-sm text-yellow-200">recurring</p> -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.floating {
+    animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Mobile and Tablet Responsive Styles */
+@media (max-width: 1024px) {
+    /* Admin Header */
+    .max-w-7xl .glass-card .flex.items-center.justify-between.mb-6 {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        text-align: center;
+    }
+    
+    .max-w-7xl .glass-card .flex.space-x-4 {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .max-w-7xl .glass-card .btn-gradient,
+    .max-w-7xl .glass-card .bg-white\\/20 {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Quick Stats Grid */
+    .max-w-7xl .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Charts and Analytics Section */
+    .max-w-7xl .grid.grid-cols-1.lg\\:grid-cols-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Plan Distribution & Analytics */
+    .max-w-7xl .grid.grid-cols-1.lg\\:grid-cols-2.gap-8 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* System Overview Grid */
+    .max-w-7xl .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* CRITICAL FIX: Remove gaps in user cards */
+    .max-w-7xl .glass-card .flex.items-center.justify-between.p-4 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    .max-w-7xl .glass-card .flex.items-center.space-x-4 {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 0.5rem;
+    }
+    
+    /* FIX GAPS in Recent Users - plan name and date */
+    .max-w-7xl .glass-card .text-right {
+        text-align: left;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.2rem;
+        margin-top: 0.1rem;
+        padding-top: 0 !important;
+    }
+    
+    /* Remove all margins from text elements */
+    .max-w-7xl .glass-card .text-right p,
+    .max-w-7xl .glass-card .text-right span {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    /* FIX GAPS in Top Storage Users - storage and plan name */
+    .max-w-7xl .glass-card .text-right .text-md {
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    /* FIX GAPS in Plan Distribution - count and users */
+    .max-w-7xl .glass-card .flex.items-center.justify-between.p-4.bg-gradient-to-r {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    .max-w-7xl .glass-card .text-right .text-2xl {
+        margin: 0 !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-right .text-sm {
+        margin: 0 !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+    
+    /* FIX GAPS in Paid Plans - count and users */
+    .max-w-7xl .glass-card .text-right .text-2xl.font-bold {
+        margin: 0 !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-right .text-xs {
+        margin: 0 !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+    
+    /* Paid Users Summary */
+    .max-w-7xl .glass-card .grid.grid-cols-3.gap-4 {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+    }
+    
+    .max-w-7xl .glass-card .grid.grid-cols-3.gap-4 > div {
+        text-align: center;
+        padding: 0.3rem !important;
+        margin: 0 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-xxl {
+        font-size: 0.875rem;
+        margin: 0 0 0.1rem 0 !important;
+        line-height: 1 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-xl {
+        font-size: 1.25rem;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    /* Reduce padding throughout */
+    .max-w-7xl .glass-card .px-8.py-8 {
+        padding: 1rem !important;
+    }
+    
+    .max-w-7xl .glass-card .px-6.py-6 {
+        padding: 0.75rem !important;
+    }
+    
+    .max-w-7xl .glass-card .p-6 {
+        padding: 0.75rem !important;
+    }
+    
+    /* Space between cards */
+    .max-w-7xl .glass-card .space-y-4 {
+        gap: 0.5rem !important;
+    }
+    
+    /* Smaller elements */
+    .max-w-7xl .glass-card .w-12.h-12 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem;
+    }
+    
+    .max-w-7xl .glass-card .w-10.h-10 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem;
+    }
+}
+
+/* Mobile specific (≤768px) */
+@media (max-width: 768px) {
+    .max-w-7xl .glass-card .text-4xl.font-bold.text-white.mb-2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .max-w-7xl .glass-card .text-blue-100.text-lg {
+        font-size: 1rem;
+        margin: 0 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-3xl.font-bold.text-white {
+        font-size: 1.5rem;
+        margin: 0 !important;
+    }
+    
+    .max-w-7xl .glass-card .text-lg.font-medium {
+        font-size: 1rem;
+        margin: 0 !important;
+    }
+}
+
+/* Tablet specific (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .max-w-7xl .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .max-w-7xl .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Keep horizontal layout on tablet but make compact */
+    .max-w-7xl .glass-card .flex.items-center.justify-between.p-4 {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem !important;
+    }
+    
+    .max-w-7xl .glass-card .text-right {
+        text-align: right;
+        width: auto;
+        display: block;
+        margin-top: 0;
+        gap: 0;
+    }
+    
+    .max-w-7xl .glass-card .flex.items-center.justify-between.p-4.bg-gradient-to-r {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem !important;
+    }
+    
+    .max-w-7xl .glass-card .grid.grid-cols-3.gap-4 {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

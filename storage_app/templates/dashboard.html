@@ -1,0 +1,756 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Storage Overview -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.02]">
+        <div class="px-6 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Storage Overview</h3>
+                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center floating">
+                    <i class="fas fa-database text-white text-lg"></i>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between text-sm font-medium text-gray-600">
+                    <span>Used: {{ user_profile.used_storage|filesizeformat }}</span>
+                    <span>Total: {{ user_profile.storage_plan.max_storage_size|filesizeformat }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div class="storage-bar h-4 rounded-full relative" 
+                         style="width: {{ storage_usage_percent }}%">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">
+                    {{ storage_usage_percent|floatformat:1 }}% of storage used
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Total Files</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ total_files }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <i class="fas fa-file text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Storage Used</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ total_size|filesizeformat }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                    <i class="fas fa-hdd text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Plan</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ user_profile.storage_plan.name }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-crown text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Plan Section -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">Your Plan</h3>
+                    <p class="text-gray-600 mt-1">Upgrade for more storage and features</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-crown text-white text-lg"></i>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Current Plan Info -->
+                <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-semibold text-gray-800">Current Plan</h4>
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {{ user_profile.storage_plan.name }}
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 mb-2">
+                        {% if user_profile.storage_plan.price == 0 %}
+                            Free
+                        {% else %}
+                            ₹{{ user_profile.storage_plan.price }}/year
+                        {% endif %}
+                    </p>
+                    <p class="text-gray-600 mb-4">
+                        {{ user_profile.storage_plan.max_storage_size|filesizeformat }} Storage
+                    </p>
+                    {% if user_profile.storage_plan.plan_type != 'free' %}
+                    <a href="{% url 'subscription_management' %}" 
+                       class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+                        <i class="fas fa-cog mr-2"></i>
+                        Manage Subscription
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Upgrade CTA -->
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border-2 border-green-200">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Need More Space?</h4>
+                    <p class="text-gray-600 mb-4">
+                        Upgrade your plan to get more storage and premium features.
+                    </p>
+                    <a href="{% url 'pricing_plans' %}" 
+                       class="btn-gradient inline-flex items-center px-6 py-3 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>
+                        Upgrade Plan
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Storage Usage Warning -->
+            {% if storage_usage_percent > 80 %}
+            <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-xl mr-3"></i>
+                    <div>
+                        <p class="font-semibold text-yellow-800">Storage Almost Full</p>
+                        <p class="text-yellow-700 text-sm">
+                            You've used {{ storage_usage_percent|floatformat:1 }}% of your storage. 
+                            <a href="{% url 'pricing_plans' %}" class="underline font-medium">Upgrade your plan</a> 
+                            to get more space.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- File Upload with Drag & Drop -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Upload File</h3>
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center pulse-upload">
+                    <i class="fas fa-cloud-upload-alt text-white text-lg"></i>
+                </div>
+            </div>
+            
+            <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <div class="flex items-center justify-center w-full">
+                    <label for="file" class="upload-area flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer bg-gray-50/50 hover:bg-blue-50/50 transition-all duration-300 border-blue-300 hover:border-blue-400">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-blue-400 mb-3"></i>
+                            <p class="mb-2 text-lg font-medium text-gray-700">Drop your files here</p>
+                            <p class="text-sm text-gray-500">or click to browse</p>
+                        </div>
+                        <input id="file" name="file" type="file" class="hidden" />
+                    </label>
+                </div>
+                
+                <div class="flex items-center space-x-3 bg-blue-50/50 rounded-xl p-4">
+                    <input id="is_public" name="is_public" type="checkbox" 
+                           class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200">
+                    <label for="is_public" class="block text-sm font-medium text-gray-700 cursor-pointer">
+                        Make file public 
+                    </label>
+                </div>
+                
+                <button type="submit" 
+                        class="btn-gradient w-full text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                    <i class="fas fa-upload mr-2"></i>Upload File
+                </button>
+            </form>
+            
+            <div id="uploadStatus" class="mt-4 hidden rounded-xl p-4"></div>
+        </div>
+    </div>
+
+    <!-- View All Files Button -->
+    <div class="text-center mb-8">
+        <a href="{% url 'file_list' %}" 
+           class="inline-flex items-center px-8 py-4 btn-gradient text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <i class="fas fa-list mr-3"></i>View All Files
+        </a>
+    </div>
+
+    <!-- Recent Files -->
+    <!-- Recent Files -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-6 border-b border-gray-200/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-clock text-blue-500"></i>
+                <span>Recent Files</span>
+            </h2>
+            
+            <!-- View Toggle Buttons -->
+            <div class="flex items-center space-x-2 bg-white/50 rounded-xl p-1">
+                <button onclick="toggleViewMode('grid')" 
+                        class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 {% if view_mode == 'grid' %}bg-blue-500 text-white{% else %}bg-transparent text-gray-600 hover:bg-white/50{% endif %}"
+                        title="Grid View">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button onclick="toggleViewMode('list')" 
+                        class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 {% if view_mode == 'list' %}bg-blue-500 text-white{% else %}bg-transparent text-gray-600 hover:bg-white/50{% endif %}"
+                        title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            {% if files %}
+                <!-- Grid View -->
+                <div id="gridView" class="{% if view_mode != 'grid' %}hidden{% endif %}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {% for file in files %}
+                        <div class="file-card bg-white/80 rounded-2xl p-5 border-2 border-transparent hover:border-blue-300 transition-all duration-300 transform hover:scale-105 group cursor-pointer shadow-lg hover:shadow-xl"
+     data-file-id="{{ file.id }}" ondblclick="openFilePreview('{{ file.id }}')">
+                            <div class="flex flex-col items-center text-center">
+                                <!-- File Icon -->
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
+                                    {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                    {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                    {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                    {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                    {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                    {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                    {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                    {% else %}from-gray-400 to-gray-600{% endif %} 
+                                    flex items-center justify-center shadow-md mb-4">
+                                    <i class="fas 
+                                        {% if file.file_type == '.pdf' %}fa-file-pdf
+                                        {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                        {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                        {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                        {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                        {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                        {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                        {% else %}fa-file{% endif %} 
+                                        text-white text-xl">
+                                    </i>
+                                </div>
+                                
+                                <!-- File Info -->
+                                <div class="flex-1 w-full">
+                                    <h3 class="text-sm font-semibold text-gray-900 truncate mb-2 group-hover:text-blue-600 transition-colors">
+                                        {{ file.name }}
+                                    </h3>
+                                    
+                                    <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                        <span>{{ file.size|filesizeformat }}</span>
+                                        <span>{{ file.uploaded_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    
+                                    <!-- Quick Actions -->
+                                    <div class="flex justify-center space-x-2">
+                                        <!-- Star Button -->
+                                        <button onclick="toggleFileStar('{{ file.id }}', this)" 
+                                                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_starred %}bg-yellow-100 text-yellow-600 hover:bg-yellow-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                title="{% if file.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+                                            <i class="fas fa-star text-xs"></i>
+                                        </button>
+                                        
+                                        <!-- Public/Private Toggle -->
+                                        <button onclick="toggleFileVisibility('{{ file.id }}', this)" 
+                                                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_public %}bg-green-100 text-green-600 hover:bg-green-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                title="{% if file.is_public %}Make Private{% else %}Make Public{% endif %}">
+                                            <i class="fas {% if file.is_public %}fa-globe-americas{% else %}fa-lock{% endif %} text-xs"></i>
+                                        </button>
+                                        
+                                        <!-- Preview Button -->
+                                        <button onclick="window.open('{% url 'preview_file' file.id %}', '_blank')" 
+                                               class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-all duration-200 transform hover:scale-110"
+                                               title="Preview">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </button>
+                                        
+                                        <!-- Download Button -->
+                                        <button onclick="downloadFile('{{ file.id }}', this)" 
+                                                class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 hover:bg-green-200 transition-all duration-200 transform hover:scale-110"
+                                                title="Download">
+                                            <i class="fas fa-download text-xs"></i>
+                                        </button>
+                                        
+                                        <!-- Delete Button -->
+                                        <button onclick="moveToTrash('{{ file.id }}')" 
+                                                class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110"
+                                                title="Move to Trash">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- List View -->
+                <div id="listView" class="{% if view_mode != 'list' %}hidden{% endif %}">
+                    <div class="overflow-x-auto rounded-2xl">
+                        <table class="min-w-full divide-y divide-gray-200/50">
+                            <thead class="bg-white/80">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        File
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Size
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Uploaded
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/50 divide-y divide-gray-200/30">
+                                {% for file in files %}
+                                <tr class="file-item hover:bg-white/80 transition-all duration-300 group cursor-pointer"
+                                    ondblclick="openFilePreview('{{ file.id }}')">
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                                                {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                                {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                                {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                                {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                                {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                                {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                                {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                                {% else %}from-gray-400 to-gray-600{% endif %} 
+                                                flex items-center justify-center shadow-md">
+                                                <i class="fas 
+                                                    {% if file.file_type == '.pdf' %}fa-file-pdf
+                                                    {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                                    {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                                    {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                                    {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                                    {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                                    {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                                    {% else %}fa-file{% endif %} 
+                                                    text-white text-sm">
+                                                </i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center space-x-2 mb-1">
+                                                    <span class="file-name text-sm font-semibold text-gray-900 truncate max-w-xs group-hover:text-blue-600 transition-colors">
+                                                        {{ file.name }}
+                                                    </span>
+                                                    <div class="flex space-x-1">
+                                                        {% if file.is_starred %}
+                                                        <span class="text-yellow-700" title="Starred">
+                                                            <i class="fas fa-star text-sm"></i>
+                                                        </span>
+                                                        {% endif %}
+                                                        {% if file.is_public %}
+                                                        <span class="text-green-700" title="Public">
+                                                            <i class="fas fa-globe-americas text-sm"></i>
+                                                        </span>
+                                                        {% else %}
+                                                        <span class="text-gray-600" title="Private">
+                                                            <i class="fas fa-lock text-sm"></i>
+                                                        </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <span class="file-size text-sm font-semibold text-gray-700">{{ file.size|filesizeformat }}</span>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <span class="file-uploaded text-sm text-gray-600">{{ file.uploaded_at|date:"M d, Y H:i" }}</span>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            <!-- Star Button -->
+                                            <button onclick="toggleFileStar('{{ file.id }}', this)" 
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_starred %}bg-yellow-100 text-yellow-600 hover:bg-yellow-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                    title="{% if file.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+                                                <i class="fas fa-star text-xs"></i>
+                                            </button>
+                                            
+                                            <!-- Public/Private Toggle -->
+                                            <button onclick="toggleFileVisibility('{{ file.id }}', this)" 
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_public %}bg-green-100 text-green-600 hover:bg-green-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                    title="{% if file.is_public %}Make Private{% else %}Make Public{% endif %}">
+                                                <i class="fas {% if file.is_public %}fa-globe-americas{% else %}fa-lock{% endif %} text-xs"></i>
+                                            </button>
+                                            
+                                            <!-- Preview Button -->
+                                            <button onclick="window.open('{% url 'preview_file' file.id %}', '_blank')" 
+                                                   class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-all duration-200 transform hover:scale-110"
+                                                   title="Preview">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                            
+                                            <!-- Download Button -->
+                                            <button onclick="downloadFile('{{ file.id }}', this)" 
+                                                    class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 hover:bg-green-200 transition-all duration-200 transform hover:scale-110"
+                                                    title="Download">
+                                                <i class="fas fa-download text-xs"></i>
+                                            </button>
+                                            
+                                            <!-- Delete Button -->
+                                            <button onclick="moveToTrash('{{ file.id }}')" 
+                                                    class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110"
+                                                    title="Move to Trash">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-16">
+                    <div class="floating mb-6">
+                        <i class="fas fa-folder-open text-8xl text-gray-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-700 mb-4">No files yet</h3>
+                    <p class="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                        Upload your first file to get started with your cloud storage journey.
+                    </p>
+                    <a href="#uploadForm" 
+                       class="btn-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload Files</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize drag and drop
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('file');
+        if (typeof initializeDragAndDrop === 'function') {
+            initializeDragAndDrop(uploadArea, fileInput);
+        }
+    });
+
+    // File upload with AJAX
+    $('#uploadForm').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var submitBtn = $(this).find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...');
+        submitBtn.prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "upload_file" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    $('#uploadStatus').removeClass('hidden bg-red-100 border-red-400 text-red-700')
+                        .addClass('bg-green-100 border-green-400 text-green-700')
+                        .html('<div class="flex items-center space-x-2"><i class="fas fa-check-circle text-green-500"></i><span>File uploaded successfully! Refreshing...</span></div>')
+                        .removeClass('hidden');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    $('#uploadStatus').removeClass('hidden bg-green-100 border-green-400 text-green-700')
+                        .addClass('bg-red-100 border-red-400 text-red-700')
+                        .html('<div class="flex items-center space-x-2"><i class="fas fa-times-circle text-red-500"></i><span>' + response.error + '</span></div>')
+                        .removeClass('hidden');
+                }
+            },
+            error: function() {
+                $('#uploadStatus').removeClass('hidden bg-green-100 border-green-400 text-green-700')
+                    .addClass('bg-red-100 border-red-400 text-red-700')
+                    .html('<div class="flex items-center space-x-2"><i class="fas fa-times-circle text-red-500"></i><span>Upload failed. Please try again.</span></div>')
+                    .removeClass('hidden');
+            },
+            complete: function() {
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
+        });
+    });
+
+    // View mode toggle
+    function toggleViewMode(mode) {
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const gridBtn = document.querySelector('button[onclick="toggleViewMode(\'grid\')"]');
+        const listBtn = document.querySelector('button[onclick="toggleViewMode(\'list\')"]');
+        
+        if (mode === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('bg-blue-500', 'text-white');
+            gridBtn.classList.remove('bg-transparent', 'text-gray-600');
+            listBtn.classList.remove('bg-blue-500', 'text-white');
+            listBtn.classList.add('bg-transparent', 'text-gray-600');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.classList.add('bg-blue-500', 'text-white');
+            listBtn.classList.remove('bg-transparent', 'text-gray-600');
+            gridBtn.classList.remove('bg-blue-500', 'text-white');
+            gridBtn.classList.add('bg-transparent', 'text-gray-600');
+        }
+        
+        fetch('/dashboard/toggle-view/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        });
+    }
+
+    // File preview function
+    function openFilePreview(fileId) {
+        if (fileId && fileId !== 'undefined') {
+            const previewUrl = `/file/preview/${fileId}/`;
+            window.open(previewUrl, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    // Download file function
+function downloadFile(fileId, element = null) {
+    // Show loading state on the button if provided
+    if (element) {
+        const originalHtml = element.innerHTML;
+        element.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        element.disabled = true;
+    }
+    
+    // Simple direct download - no new tabs
+    window.location.href = `/files/${fileId}/download/`;
+    
+    // Restore button after 2 seconds (if element was provided)
+    if (element) {
+        setTimeout(() => {
+            element.innerHTML = originalHtml;
+            element.disabled = false;
+        }, 2000);
+    }
+}
+
+    // Star functionality
+    function toggleFileStar(fileId, element) {
+        const starBtn = element;
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        starBtn.disabled = true;
+        
+        fetch(`/file/star/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.is_starred) {
+                    starBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.classList.add('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.title = 'Remove from starred';
+                    showNotification('File added to starred!', 'success');
+                } else {
+                    starBtn.classList.remove('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.title = 'Add to starred';
+                    showNotification('File removed from starred', 'info');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            starBtn.disabled = false;
+        });
+    }
+
+    // File visibility toggle
+    function toggleFileVisibility(fileId, element) {
+        const button = element;
+        const originalHtml = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        fetch(`/file/toggle-public/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Update button appearance
+                if (data.is_public) {
+                    button.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.classList.add('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.innerHTML = '<i class="fas fa-globe-americas text-xs"></i>';
+                    button.title = 'Make Private';
+                } else {
+                    button.classList.remove('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.innerHTML = '<i class="fas fa-lock text-xs"></i>';
+                    button.title = 'Make Public';
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        });
+    }
+
+    // Move to trash
+    function moveToTrash(fileId) {
+        if (confirm('Move this file to trash? You can restore it later from the trash.')) {
+            fetch(`/file/move-to-trash/${fileId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Remove the file element with animation
+                    const fileElement = document.querySelector(`[data-file-id="${fileId}"]`);
+                    if (fileElement) {
+                        fileElement.style.opacity = '0';
+                        fileElement.style.transform = 'translateX(100px)';
+                        setTimeout(() => fileElement.remove(), 500);
+                    }
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error: ' + error.message, 'error');
+            });
+        }
+    }
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+            type === 'warning' ? 'bg-yellow-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+        
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas ${
+                    type === 'success' ? 'fa-check-circle' :
+                    type === 'error' ? 'fa-times-circle' :
+                    type === 'warning' ? 'fa-exclamation-triangle' :
+                    'fa-info-circle'
+                }"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    function showShareModal(fileId, fileName) {
+        // Check if file is public or private and adjust modal behavior
+        fetch(`/api/file-info/${fileId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_public) {
+                    // For public files, don't show password option
+                    document.getElementById('passwordSection').style.display = 'none';
+                } else {
+                    // For private files, show password option
+                    document.getElementById('passwordSection').style.display = 'block';
+                }
+                // Then show the modal
+                window.showShareModal(fileId, fileName);
+            })
+            .catch(error => {
+                console.error('Error checking file info:', error);
+                // Default to showing password option
+                window.showShareModal(fileId, fileName);
+            });
+    }
+
+// Add this to dashboard.html, file_list.html, etc.
+document.addEventListener('DOMContentLoaded', function() {
+    // Periodically check session validity
+    setInterval(() => {
+        const sessionActive = sessionStorage.getItem('cloud_storage_session_active');
+        const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+        
+        if (!sessionActive && !isRemembered) {
+            // Session expired, redirect to login
+            window.location.href = '/login/?message=session_expired';
+        }
+    }, 30000); // Check every 30 seconds
+});
+</script>
+{% endblock %}
+
+

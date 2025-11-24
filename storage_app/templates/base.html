@@ -1,0 +1,629 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vetri Cloud Storage{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 10%, #b87ef2 70%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .storage-bar {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .pulse-upload {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Drag and drop styles */
+        .upload-area {
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.drag-over {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile menu alignment fixes */
+        @media (max-width: 768px) {
+            /* Hide desktop navigation on mobile */
+            .flex.items-center.space-x-6 {
+                display: none;
+            }
+            
+            /* Mobile menu toggle button */
+            .mobile-menu-toggle {
+                display: flex !important;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                cursor: pointer;
+                z-index: 1001;
+                position: relative;
+            }
+            
+            .mobile-menu-toggle span {
+                width: 20px;
+                height: 2px;
+                background: white;
+                margin: 2px 0;
+                transition: 0.3s;
+            }
+            
+            /* Mobile menu dropdown */
+            .mobile-menu {
+                position: fixed;
+                top: 64px; /* Height of the nav bar */
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                display: none;
+                flex-direction: column;
+                padding: 1rem;
+                z-index: 1000;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            .mobile-menu.active {
+                display: flex;
+            }
+            
+            .mobile-menu a {
+                color: #333;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                margin: 0.25rem 0;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+            }
+            
+            .mobile-menu a:hover {
+                background: rgba(102, 126, 234, 0.1);
+                color: #667eea;
+            }
+            
+            /* Show mobile toggle */
+            .mobile-toggle-container {
+                display: flex !important;
+                z-index: 1001;
+                position: relative;
+            }
+
+            /* Ensure nav has proper z-index */
+            .nav-glass {
+                position: relative;
+                z-index: 1000;
+            }
+        }
+
+        /* For very small screens */
+        @media (max-width: 640px) {
+            .flex.items-center.space-x-3 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .font-bold.text-xl {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Desktop styles - ensure original layout */
+        @media (min-width: 769px) {
+            .mobile-toggle-container {
+                display: none !important;
+            }
+            
+            .mobile-menu {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    {% if user.is_authenticated %}
+    <nav class="nav-glass text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="floating">
+                        <i class="fas fa-cloud text-2xl text-white"></i>
+                    </div>
+                    <span class="font-bold text-xl bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                        Vetri Cloud Storage
+                    </span>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="flex items-center space-x-6">
+                    <span class="text-blue-100">Welcome, {{ user.username }}</span>
+                    <a href="{% url 'dashboard' %}" 
+                       class="{% if request.resolver_match.url_name == 'dashboard' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'file_list' %}" 
+                       class="{% if 'file_list' in request.resolver_match.url_name or request.resolver_match.url_name == 'file_list' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-folder"></i>
+                        <span>Files</span>
+                    </a>
+                    <a href="{% url 'starred_files' %}" 
+                       class="{% if request.resolver_match.url_name == 'starred_files' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-star"></i>
+                        <span>Starred</span>
+                    </a>
+                    <a href="{% url 'trash_view' %}" 
+                       class="{% if request.resolver_match.url_name == 'trash_view' %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-trash"></i>
+                        <span>Trash</span>
+                    </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" 
+                       class="{% if 'admin' in request.resolver_match.url_name %}text-yellow-300 border-b-2 border-yellow-400{% else %}text-blue-100 hover:text-white{% endif %} transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-crown"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" 
+                       class="text-blue-100 hover:text-white transition-colors duration-200 flex items-center space-x-1 pb-1">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <div class="mobile-toggle-container hidden">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Dropdown -->
+            <div class="mobile-menu">
+                <span class="text-gray-600 px-4 py-2 text-sm">Welcome, {{ user.username }}</span>
+                <a href="{% url 'dashboard' %}" 
+                   class="{% if request.resolver_match.url_name == 'dashboard' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'file_list' %}" 
+                   class="{% if 'file_list' in request.resolver_match.url_name or request.resolver_match.url_name == 'file_list' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+                    <i class="fas fa-folder"></i>
+                    <span>Files</span>
+                </a>
+                <a href="{% url 'starred_files' %}" 
+                   class="{% if request.resolver_match.url_name == 'starred_files' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+                    <i class="fas fa-star"></i>
+                    <span>Starred</span>
+                </a>
+                <a href="{% url 'trash_view' %}" 
+                   class="{% if request.resolver_match.url_name == 'trash_view' %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+                    <i class="fas fa-trash"></i>
+                    <span>Trash</span>
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" 
+                   class="{% if 'admin' in request.resolver_match.url_name %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
+                    <i class="fas fa-crown"></i>
+                    <span>Admin Panel</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="text-gray-700">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="{% if user.is_authenticated %}py-8{% endif %}">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Mobile menu toggle function
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const toggleButton = document.querySelector('.mobile-menu-toggle');
+            
+            mobileMenu.classList.toggle('active');
+            toggleButton.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const toggleButton = document.querySelector('.mobile-menu-toggle');
+            
+            if (mobileMenu && mobileMenu.classList.contains('active') && 
+                !mobileMenu.contains(event.target) && 
+                !toggleButton.contains(event.target)) {
+                mobileMenu.classList.remove('active');
+                toggleButton.classList.remove('active');
+            }
+        });
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const types = {
+                'success': 'bg-green-500 text-white',
+                'error': 'bg-red-500 text-white', 
+                'warning': 'bg-yellow-500 text-white',
+                'info': 'bg-blue-500 text-white'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `notification glass-card rounded-xl p-4 ${types[type]} shadow-lg`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.getElementById('notificationContainer').appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Drag and drop functionality
+        function initializeDragAndDrop(uploadArea, fileInput) {
+            if (!uploadArea || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('drag-over');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                
+                // Update UI to show file name
+                if (files.length > 0) {
+                    const fileName = files[0].name;
+                    uploadArea.innerHTML = `
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-file text-3xl text-green-500 mb-2"></i>
+                            <p class="text-lg font-medium text-gray-700">${fileName}</p>
+                            <p class="text-sm text-gray-500">Ready to upload</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Double click functionality for files
+        function initializeDoubleClick(selector, callback) {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                let clickTimer = null;
+                
+                element.addEventListener('click', function(e) {
+                    if (e.target.closest('button') || e.target.closest('a')) return;
+                    
+                    if (clickTimer === null) {
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                        }, 300);
+                    } else {
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                        callback(this);
+                    }
+                });
+                
+                element.style.cursor = 'pointer';
+                element.title = 'Double-click to open';
+            });
+        }
+
+        function downloadFile(fileId) {
+            console.log('Starting download for file:', fileId);
+            
+            fetch(`/files/${fileId}/download/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Download URL received:', data.download_url);
+                    
+                    // Create a temporary link to trigger download
+                    const link = document.createElement('a');
+                    link.href = data.download_url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    
+                    // Append to body, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showNotification('Download started successfully!', 'success');
+                } else {
+                    console.error('Download failed:', data.error);
+                    showNotification('Download failed: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Download error:', error);
+                showNotification('Download failed. Please try again.', 'error');
+            });
+        }
+
+        function getCsrfToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfToken ? csrfToken.value : '';
+        }
+
+        function showNotification(message, type = 'info') {
+            // Simple notification - you can replace with your preferred system
+            if (type === 'error') {
+                alert('Error: ' + message);
+            } else if (type === 'success') {
+                alert('Success: ' + message);
+            } else {
+                alert(message);
+            }
+        }
+
+        // Add this function to handle double-click
+        function openFilePreview(fileId) {
+            if (fileId) {
+                window.open(`/file/preview/${fileId}/`, '_blank');
+            }
+        }
+
+        // Also update the existing double-click initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // For file cards in dashboard
+            document.querySelectorAll('.file-card').forEach(card => {
+                card.addEventListener('dblclick', function() {
+                    const fileId = this.getAttribute('ondblclick')?.match(/'([^']+)'/)?.[1];
+                    if (fileId) {
+                        openFilePreview(fileId);
+                    }
+                });
+            });
+            
+            // For file items in both pages
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('dblclick', function() {
+                    const fileId = this.getAttribute('ondblclick')?.match(/'([^']+)'/)?.[1];
+                    if (fileId) {
+                        openFilePreview(fileId);
+                    }
+                });
+            });
+        });
+
+        // Tab-based session management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate a unique tab ID for this browser tab
+            let tabId = sessionStorage.getItem('cloud_storage_tab_id');
+            if (!tabId) {
+                tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('cloud_storage_tab_id', tabId);
+            }
+            
+            // Store tab ID in a global variable
+            window.cloudStorageTabId = tabId;
+            
+            // Check if this is a remembered session
+            const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+            
+            if (!isRemembered) {
+                // For non-remembered sessions, set up tab close detection
+                setupTabSessionManagement();
+            }
+            
+            // Check authentication status on page load
+            checkAuthStatus();
+        });
+
+        function setupTabSessionManagement() {
+            // Store session info in sessionStorage (cleared when tab closes)
+            sessionStorage.setItem('cloud_storage_session_active', 'true');
+            sessionStorage.setItem('cloud_storage_remember_me', 'false');
+            
+            // Detect tab close or refresh
+            window.addEventListener('beforeunload', function(e) {
+                // Only clear session if it's a tab close (not page refresh)
+                if (!e.currentTarget.performance.navigation.type === 1) { // Not a refresh
+                    clearTabSession();
+                }
+            });
+            
+            // Also set up page hide (when tab becomes inactive)
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'hidden') {
+                    // Tab is now hidden - we could log this for analytics
+                    console.log('🔒 Tab became inactive');
+                }
+            });
+        }
+
+        function clearTabSession() {
+            // Clear session storage for this tab
+            sessionStorage.removeItem('cloud_storage_session_active');
+            sessionStorage.removeItem('cloud_storage_remember_me');
+            
+            // Optionally make a call to logout on server side
+            // This is optional since sessionStorage will be cleared anyway
+            fetch('/clear-tab-session/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            }).catch(err => console.log('Cleanup request failed:', err));
+        }
+
+        function checkAuthStatus() {
+            // Check if we should be logged out based on sessionStorage
+            const sessionActive = sessionStorage.getItem('cloud_storage_session_active');
+            const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+            
+            if (!sessionActive && !isRemembered) {
+                // Session is not active and not remembered, redirect to login
+                window.location.href = '/login/?message=session_expired';
+            }
+        }
+
+        // Helper function to get CSRF token
+        function getCsrfToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfToken ? csrfToken.value : '';
+        }
+    </script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

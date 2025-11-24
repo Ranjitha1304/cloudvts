@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900">
+    <!-- Enhanced Preview Header -->
+    <div class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Left Side: Back + File Info -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="goBack()" 
+                            class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center space-x-2">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back</span>
+                    </button>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                        {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                        {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                        {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                        {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                        {% elif file.file_type in '.mp4,.avi,.mov,.webm' %}from-orange-400 to-orange-600
+                        {% elif file.file_type in '.mp3,.wav,.ogg' %}from-yellow-400 to-yellow-600
+                        {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                        {% else %}from-gray-400 to-gray-600{% endif %} 
+                        flex items-center justify-center shadow-md">
+                        <i class="fas 
+                            {% if file.file_type == '.pdf' %}fa-file-pdf
+                            {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                            {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                            {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                            {% elif file.file_type in '.mp4,.avi,.mov,.webm' %}fa-file-video
+                            {% elif file.file_type in '.mp3,.wav,.ogg' %}fa-file-audio
+                            {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                            {% else %}fa-file{% endif %} 
+                            text-white text-sm">
+                        </i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold text-white truncate max-w-md">
+                            {{ file.name }}
+                        </h1>
+                        <p class="text-sm text-gray-400">
+                            {{ file.size|filesizeformat }} • {{ file.file_type|upper }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Right Side: All Actions -->
+                <div class="flex items-center space-x-2">
+                    <!-- Star Button -->
+                    <button onclick="toggleFileStar('{{ file.id }}')" 
+                            class="{% if file.is_starred %}bg-yellow-600 text-white{% else %}bg-gray-700 text-gray-300{% endif %} hover:bg-yellow-700 px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2"
+                            title="{% if file.is_starred %}Unstar{% else %}Star{% endif %}">
+                        <i class="fas {% if file.is_starred %}fa-star{% else %}fa-star{% endif %}"></i>
+                        <span>{% if file.is_starred %}Unstar{% else %}Star{% endif %}</span>
+                    </button>
+                    
+                    <!-- Public/Private Toggle -->
+                    <button onclick="toggleFileVisibility('{{ file.id }}')" 
+                            class="{% if file.is_public %}bg-green-600 text-white{% else %}bg-gray-700 text-gray-300{% endif %} hover:bg-green-700 px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2"
+                            title="{% if file.is_public %}Make Private{% else %}Make Public{% endif %}">
+                        <i class="fas {% if file.is_public %}fa-globe-americas{% else %}fa-lock{% endif %}"></i>
+                        <span>{% if file.is_public %}Public{% else %}Private{% endif %}</span>
+                    </button>
+                    
+                    <!-- Share Button -->
+                    <button onclick="showShareModal('{{ file.id }}', '{{ file.name }}')" 
+                            class="bg-purple-600 text-white hover:bg-purple-700 px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Share</span>
+                    </button>
+                    
+                    <!-- Download Button -->
+                    <a href="{% url 'download_file' file.id %}" 
+                       class="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-download"></i>
+                        <span>Download</span>
+                    </a>
+                    
+                    <!-- Close Button -->
+                    <button onclick="closePreview()" 
+                            class="bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-times"></i>
+                        <span>Close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Preview Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="p-8">
+                {% if file_category == 'image' %}
+                <!-- Image Preview -->
+                <div class="flex justify-center">
+                    <img src="{{ preview_url }}" 
+                         alt="{{ file.name }}" 
+                         class="max-w-full max-h-screen object-contain rounded-lg shadow-2xl"
+                         id="previewImage">
+                </div>
+                
+                {% elif file_category == 'pdf' %}
+                <!-- PDF Preview -->
+                <div class="flex justify-center">
+                    <iframe src="{{ preview_url }}" 
+                            class="w-full h-screen rounded-lg shadow-2xl border-0"
+                            id="pdfPreview">
+                    </iframe>
+                </div>
+                
+                {% elif file_category == 'text' or file_category == 'code' %}
+                <!-- Text/Code Preview -->
+                <div class="bg-gray-800 rounded-lg p-6 h-screen overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-300">
+                            {% if file_category == 'code' %}Code Preview{% else %}Text Preview{% endif %}
+                        </h3>
+                        <button onclick="copyTextContent()" 
+                                class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-copy mr-1"></i>Copy
+                        </button>
+                    </div>
+                    <pre class="text-gray-300 whitespace-pre-wrap font-mono text-sm bg-gray-900 p-4 rounded-lg overflow-x-auto" 
+                         id="textContent">{{ text_content|default:"Loading content..." }}</pre>
+                </div>
+                
+                {% elif file_category == 'html' %}
+                <!-- HTML Preview -->
+                <div class="flex justify-center">
+                    <iframe src="{{ preview_url }}" 
+                            class="w-full h-screen rounded-lg shadow-2xl border-0"
+                            id="htmlPreview">
+                    </iframe>
+                </div>
+                
+                {% elif file_category == 'video' %}
+                <!-- Video Preview -->
+                <div class="flex justify-center">
+                    <video controls autoplay class="max-w-full max-h-screen rounded-lg shadow-2xl">
+                        <source src="{{ preview_url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                
+                {% elif file_category == 'audio' %}
+                <!-- Audio Preview -->
+                <div class="flex justify-center">
+                    <div class="w-full max-w-2xl bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-300 mb-4">Audio Preview</h3>
+                        <audio controls autoplay class="w-full">
+                            <source src="{{ preview_url }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+                
+                {% elif file_category == 'office' %}
+                <!-- Office Document Preview -->
+                <div class="text-center py-16">
+                    <div class="floating mb-6">
+                        <i class="fas fa-file-excel text-8xl text-green-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-300 mb-4">
+                        Office Document Preview
+                    </h3>
+                    <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto">
+                        Office documents (Word, Excel, PowerPoint) cannot be previewed in the browser.
+                        Please download the file to view its contents.
+                    </p>
+                    <div class="mt-6">
+                        <a href="{% url 'download_file' file.id %}" 
+                           class="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                            <i class="fas fa-download"></i>
+                            <span>Download File</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {% else %}
+                <!-- Unsupported File Type -->
+                <div class="text-center py-16">
+                    <div class="floating mb-6">
+                        <i class="fas fa-file-download text-8xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-300 mb-4">
+                        Preview Not Available
+                    </h3>
+                    <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto">
+                        This file type cannot be previewed in the browser.
+                        Please download the file to view its contents.
+                    </p>
+                    <div class="mt-6">
+                        <a href="{% url 'download_file' file.id %}" 
+                           class="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                            <i class="fas fa-download"></i>
+                            <span>Download File</span>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+{% include 'modals/share_modal.html' %}
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    body {
+        background: #111827;
+    }
+    
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+
+    @keyframes floating {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+
+<script>
+    // Navigation functions
+    function goBack() {
+        // Try to go back in history
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // If no history, redirect to dashboard
+            window.location.href = "{% url 'dashboard' %}";
+        }
+    }
+
+    function closePreview() {
+        // Check if this window was opened by window.open()
+        if (window.opener && !window.opener.closed) {
+            // This is a popup window, close it
+            window.close();
+        } else {
+            // This is a regular tab, go back or redirect
+            goBack();
+        }
+    }
+
+    // Copy text content function
+    function copyTextContent() {
+        const textContent = document.getElementById('textContent').textContent;
+        navigator.clipboard.writeText(textContent).then(function() {
+            showNotification('Content copied to clipboard!', 'success');
+        }).catch(function() {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textContent;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showNotification('Content copied to clipboard!', 'success');
+        });
+    }
+
+    // Fullscreen functionality
+    function toggleFullscreen() {
+        const element = document.getElementById('previewImage') || 
+                       document.getElementById('pdfPreview') || 
+                       document.getElementById('htmlPreview');
+        
+        if (!document.fullscreenElement) {
+            if (element && element.requestFullscreen) {
+                element.requestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // File actions
+    // File actions
+    function toggleFileStar(fileId) {
+        const starBtn = event.target.closest('button');
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
+        starBtn.disabled = true;
+        
+        fetch(`/file/star/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Update button appearance
+                if (data.is_starred) {
+                    starBtn.classList.remove('bg-gray-700', 'text-gray-300');
+                    starBtn.classList.add('bg-yellow-600', 'text-white');
+                    starBtn.innerHTML = '<i class="fas fa-star"></i><span>Unstar</span>';
+                    starBtn.title = 'Unstar';
+                } else {
+                    starBtn.classList.remove('bg-yellow-600', 'text-white');
+                    starBtn.classList.add('bg-gray-700', 'text-gray-300');
+                    starBtn.innerHTML = '<i class="fas fa-star"></i><span>Star</span>';
+                    starBtn.title = 'Star';
+                }
+                
+                // Refresh the parent window (dashboard) if it exists
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            starBtn.disabled = false;
+        });
+    }
+
+    function toggleFileVisibility(fileId) {
+        const visibilityBtn = event.target.closest('button');
+        const originalHtml = visibilityBtn.innerHTML;
+        
+        visibilityBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
+        visibilityBtn.disabled = true;
+        
+        fetch(`/file/toggle-public/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Update button appearance
+                if (data.is_public) {
+                    visibilityBtn.classList.remove('bg-gray-700', 'text-gray-300');
+                    visibilityBtn.classList.add('bg-green-600', 'text-white');
+                    visibilityBtn.innerHTML = '<i class="fas fa-globe-americas"></i><span>Public</span>';
+                    visibilityBtn.title = 'Make Private';
+                } else {
+                    visibilityBtn.classList.remove('bg-green-600', 'text-white');
+                    visibilityBtn.classList.add('bg-gray-700', 'text-gray-300');
+                    visibilityBtn.innerHTML = '<i class="fas fa-lock"></i><span>Private</span>';
+                    visibilityBtn.title = 'Make Public';
+                }
+                
+                // Refresh the parent window (dashboard) if it exists
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            visibilityBtn.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            visibilityBtn.disabled = false;
+        });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Escape to go back/close
+        if (e.key === 'Escape') {
+            closePreview();
+        }
+        // F for fullscreen
+        if (e.key === 'f' || e.key === 'F') {
+            toggleFullscreen();
+        }
+        // D for download
+        if ((e.key === 'd' || e.key === 'D') && e.ctrlKey) {
+            window.location.href = '{% url 'download_file' file.id %}';
+        }
+    });
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+            type === 'warning' ? 'bg-yellow-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+        
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas ${
+                    type === 'success' ? 'fa-check-circle' :
+                    type === 'error' ? 'fa-times-circle' :
+                    type === 'warning' ? 'fa-exclamation-triangle' :
+                    'fa-info-circle'
+                }"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    // Initialize - check if we're in a popup
+    document.addEventListener('DOMContentLoaded', function() {
+        // If this is a popup window, show a different close behavior
+        if (window.opener) {
+            console.log('Preview opened in popup window');
+        } else {
+            console.log('Preview opened in regular tab');
+        }
+    });
+</script>
+{% endblock %}

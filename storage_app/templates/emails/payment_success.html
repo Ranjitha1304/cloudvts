@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .payment-details { background: white; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Successful!</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            <p>Thank you for your payment. Your subscription has been activated successfully.</p>
+            
+            <div class="payment-details">
+                <h3>Payment Details:</h3>
+                <p><strong>Plan:</strong> {{ plan.name }}</p>
+                <p><strong>Amount:</strong> ₹{{ amount }}</p>
+                <p><strong>Billing Period:</strong> Yearly</p>
+                <p><strong>Storage:</strong> {{ plan.max_storage_size|filesizeformat }}</p>
+            </div>
+            
+            <p>You can now enjoy all the features of your new plan.</p>
+            
+            <!-- <p style="text-align: center;">
+                <a href="{{ site_url }}/dashboard/" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    Go to Dashboard
+                </a>
+            </p> -->
+        </div>
+        <div class="footer">
+            <p>&copy; {% now "Y" %} CloudVTS. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

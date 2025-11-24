@@ -1,0 +1,251 @@
+<!-- templates/admin_plan_form.html -->
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <!-- Header -->
+    <div class="glass-card rounded-2xl mb-6 sm:mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+                <div class="flex flex-col xs:flex-row xs:items-center space-y-4 xs:space-y-0 xs:space-x-4">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center floating mx-auto xs:mx-0">
+                        <i class="fas fa-edit text-white text-xl sm:text-2xl"></i>
+                    </div>
+                    <div class="text-center xs:text-left">
+                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{{ title }}</h1>
+                        <p class="text-blue-100 text-sm sm:text-base lg:text-lg opacity-90">Configure storage plan details and pricing</p>
+                    </div>
+                </div>
+                <a href="{% url 'admin_plans_list' %}" 
+                   class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 border border-white/30 w-full sm:w-auto">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="text-sm sm:text-base">Back to Plans</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Form -->
+    <div class="glass-card rounded-2xl transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-4 sm:px-6 py-4 sm:py-6 border-b border-white/20">
+            <h2 class="text-lg sm:text-xl font-bold text-white flex items-center justify-center sm:justify-start space-x-3">
+                <i class="fas fa-cog text-purple-700"></i>
+                <span>Plan Configuration</span>
+            </h2>
+        </div>
+        
+        <div class="p-4 sm:p-6">
+            <form method="POST" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-500/20 border border-red-500/30 rounded-xl p-3 sm:p-4">
+                    <div class="flex items-center space-x-2 text-red-300">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="font-semibold text-sm sm:text-base">Please correct the following errors:</span>
+                    </div>
+                    <ul class="mt-2 text-red-200 text-xs sm:text-sm">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 gap-4 sm:gap-6">
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Plan Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Plan Type</label>
+                        {{ form.plan_type }}
+                        {% if form.plan_type.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.plan_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Storage & File Size Limits -->
+                <div class="grid grid-cols-1 gap-4 sm:gap-6">
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">
+                            Total Storage Size
+                            <span class="text-gray-600 text-xs sm:text-sm font-normal">(e.g., 5GB, 50GB, 1TB)</span>
+                        </label>
+                        {{ form.max_storage_size_input }}
+                        {% if form.max_storage_size_input.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.max_storage_size_input.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- ADD: File Size Limit Field -->
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">
+                            Max File Size
+                            <span class="text-gray-600 text-xs sm:text-sm font-normal">(e.g., 100MB, 2GB, 5GB)</span>
+                        </label>
+                        {{ form.max_file_size_input }}
+                        {% if form.max_file_size_input.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.max_file_size_input.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="grid grid-cols-1 gap-4 sm:gap-6">
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Price (₹/year)</label>
+                        {{ form.price }}
+                        {% if form.price.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.price.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Billing Period</label>
+                        {{ form.billing_period }}
+                        {% if form.billing_period.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.billing_period.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Additional Settings -->
+                <div class="grid grid-cols-1 gap-4 sm:gap-6">
+                    <div>
+                        <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Display Order</label>
+                        {{ form.display_order }}
+                        <p class="text-gray-500 text-xs sm:text-sm mt-1">Lower numbers appear first</p>
+                        {% if form.display_order.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.display_order.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        {{ form.is_active }}
+                        <label class="text-white font-semibold text-sm sm:text-base">Active Plan</label>
+                        {% if form.is_active.errors %}
+                        <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Features -->
+<!-- Features Section - Updated for mobile -->
+<div>
+    <label class="block text-white font-semibold mb-2 text-sm sm:text-base">Features</label>
+    <div class="w-full">
+        {{ form.features }}
+    </div>
+    <p class="text-gray-500 text-xs sm:text-sm mt-1">{{ form.features.help_text }}</p>
+    {% if form.features.errors %}
+    <div class="text-red-300 text-xs sm:text-sm mt-1">{{ form.features.errors }}</div>
+    {% endif %}
+</div>
+                <!-- Form Actions -->
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-white/20">
+                    <button type="submit" 
+                            class="btn-gradient text-white px-6 py-3 sm:px-8 sm:py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 w-full sm:w-auto">
+                        <i class="fas fa-save"></i>
+                        <span class="text-sm sm:text-base">{{ submit_text }}</span>
+                    </button>
+                    
+                    <a href="{% url 'admin_plans_list' %}" 
+                       class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 sm:px-8 sm:py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 border border-white/30 w-full sm:w-auto">
+                        <i class="fas fa-times"></i>
+                        <span class="text-sm sm:text-base">Cancel</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    color: black;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+/* Specific textarea fixes */
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Mobile font size */
+@media (max-width: 640px) {
+    .form-input, .form-select, .form-textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.625rem 0.875rem;
+    }
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.375rem;
+}
+
+.form-checkbox:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 640px) {
+    .glass-card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        border-radius: 1rem;
+    }
+    /* Ensure textarea container doesn't have extra padding */
+    .p-4\.sm\:p-6 > form > div:last-child {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+</style>
+
+<script>
+// Force textarea to be responsive
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.style.width = '100%';
+        textarea.style.maxWidth = '100%';
+        textarea.style.boxSizing = 'border-box';
+    }
+});
+</script>
+
+{% endblock %}

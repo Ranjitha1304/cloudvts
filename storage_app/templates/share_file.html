@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Share Card -->
+        <div class="glass-card rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-500">
+            <div class="p-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-20 h-20 bg-gradient-to-br from-white to-blue-100 rounded-full flex items-center justify-center shadow-lg floating mb-4">
+                        <i class="fas fa-share-alt text-3xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                        Shared File
+                    </h2>
+                    <p class="text-blue-100 mt-2">Access the shared file below</p>
+                </div>
+
+                <!-- File Info -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
+                            {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                            {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                            {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                            {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                            {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                            {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                            {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                            {% else %}from-gray-400 to-gray-600{% endif %} 
+                            flex items-center justify-center shadow-md">
+                            <i class="fas 
+                                {% if file.file_type == '.pdf' %}fa-file-pdf
+                                {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                {% else %}fa-file{% endif %} 
+                                text-white text-xl">
+                            </i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-white mb-2">{{ file.name }}</h3>
+                            <div class="flex items-center space-x-4 text-blue-100 text-sm">
+                                <span class="flex items-center space-x-1">
+                                    <i class="fas fa-file"></i>
+                                    <span>{{ file.file_type|upper }}</span>
+                                </span>
+                                <span class="flex items-center space-x-1">
+                                    <i class="fas fa-weight-hanging"></i>
+                                    <span>{{ file.size|filesizeformat }}</span>
+                                </span>
+                                <span class="flex items-center space-x-1">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Uploaded {{ file.uploaded_at|date:"M d, Y" }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Share Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                        <h4 class="text-white font-semibold mb-2 flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Share Information
+                        </h4>
+                        <div class="space-y-2 text-blue-100 text-sm">
+                            <div class="flex justify-between">
+                                <span>Shared by:</span>
+                                <span class="text-white">{{ file.owner.username }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Shared on:</span>
+                                <span class="text-white">{{ share_link.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% if share_link.expires_at %}
+                            <div class="flex justify-between">
+                                <span>Expires:</span>
+                                <span class="text-yellow-300">{{ share_link.expires_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% else %}
+                            <div class="flex justify-between">
+                                <span>Expires:</span>
+                                <span class="text-green-300">Never</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                        <h4 class="text-white font-semibold mb-2 flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Download Options
+                        </h4>
+                        <p class="text-blue-100 text-sm mb-4">
+                            Click the button below to download this file to your device.
+                        </p>
+                        <a href="{{ download_url }}" 
+                           class="w-full btn-gradient text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
+                            <i class="fas fa-download"></i>
+                            <span>Download File</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="bg-blue-500/20 backdrop-blur-sm rounded-2xl p-4 border border-blue-300/30">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-shield-alt text-blue-300 text-lg mt-1"></i>
+                        <div>
+                            <h4 class="text-white font-semibold mb-1">Secure Download</h4>
+                            <p class="text-blue-100 text-sm">
+                                This download link is secure and will expire automatically. 
+                                The file has been scanned for viruses and is safe to download.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Account CTA -->
+                <div class="text-center mt-8 pt-6 border-t border-white/20">
+                    <p class="text-blue-100 mb-4">Like what you see?</p>
+                    <a href="{% url 'register' %}" 
+                       class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>
+                        Create Free Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+
+    @keyframes floating {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+
+<script>
+    // Auto-start download after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            // Optional: You can enable auto-download by uncommenting the line below
+            // window.location.href = '{{ download_url }}';
+        }, 3000);
+    });
+
+    // Track download (you can integrate with analytics here)
+    document.querySelector('a[href="{{ download_url }}"]').addEventListener('click', function() {
+        console.log('File download initiated:', '{{ file.name }}');
+        // Add analytics tracking here
+    });
+</script>
+{% endblock %}

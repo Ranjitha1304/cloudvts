@@ -1,0 +1,1325 @@
+<!-- file_list.html with Pagination -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+/* Mobile styles for file list header */
+@media (max-width: 768px) {
+    .flex.justify-between.items-center.mb-6 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .flex.space-x-4 {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    
+    .btn-gradient, 
+    .bg-gray-600 {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .btn-gradient span,
+    .bg-gray-600 span {
+        font-size: 0.875rem;
+    }
+    
+    .text-3xl.font-bold.text-gray-800.mb-2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+    .flex.space-x-4 {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .btn-gradient,
+    .bg-gray-600 {
+        width: 100%;
+    }
+}
+</style>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">My Files</h1>
+                    <!-- Breadcrumbs -->
+                    <nav class="flex" aria-label="Breadcrumb">
+                        <ol class="flex items-center space-x-3">
+                            <li>
+                                <a href="{% url 'file_list' %}" class="text-gray-500 hover:text-gray-700 transition-colors">
+                                    <i class="fas fa-home"></i>
+                                </a>
+                            </li>
+                            {% if current_folder %}
+                                <li class="flex items-center">
+                                    <span class="text-gray-400 mx-2">/</span>
+                                    <span class="text-gray-700 font-medium">{{ current_folder.name }}</span>
+                                </li>
+                            {% endif %}
+                        </ol>
+                    </nav>
+                </div>
+                <div class="flex space-x-4">
+                    <!-- Create Folder Button -->
+                    <button onclick="showCreateFolderModal()" 
+                            class="btn-gradient text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                        <i class="fas fa-folder-plus"></i>
+                        <span>New Folder</span>
+                    </button>
+                    <a href="{% url 'dashboard' %}" 
+                       class="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="mt-6 space-y-4">
+                <!-- Search Bar -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400 text-lg"></i>
+                    </div>
+                    <input type="text" 
+                           id="searchInput"
+                           class="block w-full pl-12 pr-12 py-4 border-0 bg-white/80 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg"
+                           placeholder="Search files and folders..."
+                           onkeyup="performSearch()">
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        <button onclick="clearSearch()" 
+                                class="text-gray-400 hover:text-gray-600 transition-colors hidden transform hover:scale-110"
+                                id="clearSearchBtn">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enhanced Filters -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-filter text-blue-500 text-lg"></i>
+                            <span class="font-semibold text-gray-700">Filter Files with Type:</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <!-- File Type Filter -->
+                            <div class="relative group">
+                                <select id="fileTypeFilter" 
+                                        onchange="applyFilters()"
+                                        class="appearance-none bg-white/80 border-0 rounded-xl pl-4 pr-10 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg cursor-pointer">
+                                    <option value="">All File Types</option>
+                                    <option value="starred" {% if file_type_filter == 'starred' %}selected{% endif %}>
+                                        ⭐ Starred
+                                    </option>
+                                    <option value="image" {% if file_type_filter == 'image' %}selected{% endif %}>
+                                        Images
+                                    </option>
+                                    <option value="pdf" {% if file_type_filter == 'pdf' %}selected{% endif %}>
+                                        PDF Documents
+                                    </option>
+                                    <option value="document" {% if file_type_filter == 'document' %}selected{% endif %}>
+                                        Word Documents
+                                    </option>
+                                    <option value="spreadsheet" {% if file_type_filter == 'spreadsheet' %}selected{% endif %}>
+                                        Excel Files
+                                    </option>
+                                    <option value="video" {% if file_type_filter == 'video' %}selected{% endif %}>
+                                        Videos
+                                    </option>
+                                    <option value="audio" {% if file_type_filter == 'audio' %}selected{% endif %}>
+                                        Audio Files
+                                    </option>
+                                    <option value="archive" {% if file_type_filter == 'archive' %}selected{% endif %}>
+                                        Archives
+                                    </option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+
+                            <!-- Date Filter -->
+                            <div class="relative group">
+                                <select id="dateFilter" 
+                                        onchange="applyFilters()"
+                                        class="appearance-none bg-white/80 border-0 rounded-xl pl-4 pr-10 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all duration-300 shadow-lg cursor-pointer">
+                                        <option value="">All Time</option>
+                                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>
+                                            Today
+                                        </option>
+                                        <option value="week" {% if date_filter == 'week' %}selected{% endif %}>
+                                            Last 7 Days
+                                        </option>
+                                        <option value="month" {% if date_filter == 'month' %}selected{% endif %}>
+                                            Last 30 Days
+                                        </option>
+                                        <option value="year" {% if date_filter == 'year' %}selected{% endif %}>
+                                            Last Year
+                                        </option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                            </div>
+
+                            <!-- Clear Filters Button -->
+                            {% if file_type_filter or date_filter %}
+                            <button onclick="clearFilters()" 
+                                    class="bg-red-500 text-white px-4 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
+                                <i class="fas fa-times"></i>
+                                <span>Clear Filters</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folders List -->
+    {% if folders %}
+    <div class="glass-card rounded-2xl mb-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="px-6 py-6 border-b border-gray-200/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-folder text-yellow-500"></i>
+                <span>Folders ({{ folders|length }})</span>
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="foldersContainer">
+                {% for folder in folders %}
+                <div class="folder-item bg-white/80 rounded-2xl p-5 border-2 border-transparent hover:border-yellow-300 transition-all duration-300 transform hover:scale-105 group cursor-pointer shadow-lg hover:shadow-xl">
+                    <div class="flex flex-col h-full">
+                        <!-- Folder Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                                <i class="fas fa-folder text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="flex space-x-1">
+                                {% if folder.is_starred %}
+                                <span class="text-yellow-700" title="Starred">
+                                    <i class="fas fa-star text-sm"></i>
+                                </span>
+                                {% endif %}
+                                {% if folder.is_public %}
+                                <span class="text-green-700" title="Public">
+                                    <i class="fas fa-globe-americas text-sm"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Folder Info -->
+                        <div class="flex-1">
+                            <a href="{% url 'file_list_folder' folder.id %}" class="block">
+                                <h3 class="text-lg font-semibold text-gray-900 truncate group-hover:text-yellow-600 transition-colors mb-2">
+                                    {{ folder.name }}
+                                </h3>
+                                <p class="text-md text-gray-600">
+                                    {{ folder.get_files_count }} file{{ folder.get_files_count|pluralize }}
+                                </p>
+                                <p class="text-md text-gray-600">
+                                    {{ folder.get_subfolders_count }} folder{{ folder.get_subfolders_count|pluralize }}
+                                </p>
+                            </a>
+                        </div>
+                        
+                        <!-- Folder Actions -->
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200/50">
+                            <div class="flex space-x-1">
+                                <!-- Star Button -->
+                                <button onclick="toggleFolderStar('{{ folder.id }}', this)" 
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if folder.is_starred %}bg-yellow-100 text-yellow-600 hover:bg-yellow-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                        title="{% if folder.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+                                    <i class="fas fa-star text-xs"></i>
+                                </button>
+                                
+                                <!-- Public/Private Toggle -->
+                                <button onclick="toggleFolderVisibility('{{ folder.id }}', this)" 
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if folder.is_public %}bg-green-100 text-green-600 hover:bg-green-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                        title="{% if folder.is_public %}Make Private{% else %}Make Public{% endif %}">
+                                    <i class="fas {% if folder.is_public %}fa-globe-americas{% else %}fa-lock{% endif %} text-xs"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex space-x-1">
+                                <!-- Share Button -->
+                                <button onclick="showShareModal('{{ folder.id }}', '{{ folder.name }}', {% if not folder.is_public %}true{% else %}false{% endif %}, 'folder')" 
+                                        class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 hover:bg-purple-200 transition-all duration-200 transform hover:scale-110"
+                                        title="Share Folder">
+                                    <i class="fas fa-share-alt text-xs"></i>
+                                </button>
+                                
+                                <!-- Delete Button -->
+                                <button onclick="moveFolderToTrash('{{ folder.id }}', '{{ folder.name }}')" 
+                                        class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110"
+                                        title="Move to Trash">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Files List -->
+    <div class="glass-card rounded-2xl">
+        <div class="px-6 py-6 border-b border-gray-200/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-3">
+                <i class="fas fa-file text-blue-500"></i>
+                <span>{% if current_folder %}Files in {{ current_folder.name }}{% else %}All Files{% endif %}</span>
+            </h2>
+            
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-600 bg-white/50 rounded-full px-4 py-2">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} file{{ page_obj.paginator.count|pluralize }}
+                    {% if file_type_filter or date_filter %}
+                    <span class="text-blue-600">(Filtered)</span>
+                    {% endif %}
+                </span>
+                
+                <!-- View Toggle Buttons -->
+                <div class="flex items-center space-x-2 bg-white/50 rounded-xl p-1">
+                    <button onclick="toggleFilesViewMode('grid')" 
+                            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 {% if files_view_mode == 'grid' %}bg-blue-500 text-white{% else %}bg-transparent text-gray-600 hover:bg-white/50{% endif %}"
+                            title="Grid View">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button onclick="toggleFilesViewMode('list')" 
+                            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 {% if files_view_mode == 'list' %}bg-blue-500 text-white{% else %}bg-transparent text-gray-600 hover:bg-white/50{% endif %}"
+                            title="List View">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            {% if page_obj %}
+                <!-- Grid View -->
+                <div id="filesGridView" class="{% if files_view_mode != 'grid' %}hidden{% endif %}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {% for file in page_obj %}
+                        <div class="file-card bg-white/80 rounded-2xl p-5 border-2 border-transparent hover:border-blue-300 transition-all duration-300 transform hover:scale-105 group cursor-pointer shadow-lg hover:shadow-xl"
+                             data-file-id="{{ file.id }}" ondblclick="openFilePreview('{{ file.id }}')">
+                            <div class="flex flex-col items-center text-center h-full">
+                                <!-- File Icon -->
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
+                                    {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                    {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                    {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                    {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                    {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                    {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                    {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                    {% else %}from-gray-400 to-gray-600{% endif %} 
+                                    flex items-center justify-center shadow-md mb-4">
+                                    <i class="fas 
+                                        {% if file.file_type == '.pdf' %}fa-file-pdf
+                                        {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                        {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                        {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                        {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                        {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                        {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                        {% else %}fa-file{% endif %} 
+                                        text-white text-xl">
+                                    </i>
+                                </div>
+                                
+                                <!-- File Info -->
+                                <div class="flex-1 w-full">
+                                    <h3 class="text-sm font-semibold text-gray-900 truncate mb-2 group-hover:text-blue-600 transition-colors">
+                                        {{ file.name }}
+                                    </h3>
+                                    
+                                    <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                        <span>{{ file.size|filesizeformat }}</span>
+                                        <span>{{ file.uploaded_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    
+                                    <!-- Quick Actions -->
+                                    <div class="space-y-3 mb-3">
+                                        <!-- Status & View Actions -->
+                                        <div class="flex justify-center space-x-3">
+                                            <!-- Status Group -->
+                                            <div class="flex space-x-1 bg-gray-50 rounded-lg p-1">
+                                                <button onclick="toggleFileStar('{{ file.id }}', this)" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_starred %}bg-yellow-100 text-yellow-600 hover:bg-yellow-200{% else %}bg-white text-gray-600 hover:bg-gray-100{% endif %}"
+                                                        title="{% if file.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+                                                    <i class="fas fa-star text-xs"></i>
+                                                </button>
+                                                
+                                                <button onclick="toggleFileVisibility('{{ file.id }}', this)" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 {% if file.is_public %}bg-green-100 text-green-600 hover:bg-green-200{% else %}bg-white text-gray-600 hover:bg-gray-100{% endif %}"
+                                                        title="{% if file.is_public %}Make Private{% else %}Make Public{% endif %}">
+                                                    <i class="fas {% if file.is_public %}fa-globe-americas{% else %}fa-lock{% endif %} text-xs"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- View Group -->
+                                            <div class="flex space-x-1 bg-blue-50 rounded-lg p-1">
+                                                <button onclick="window.open('{% url 'preview_file' file.id %}', '_blank')" 
+                                                       class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 bg-white text-blue-600 hover:bg-blue-100"
+                                                       title="Preview">
+                                                    <i class="fas fa-eye text-xs"></i>
+                                                </button>
+                                                
+                                                <button onclick="downloadFile('{{ file.id }}', this)" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 bg-white text-green-600 hover:bg-green-100"
+                                                        title="Download">
+                                                    <i class="fas fa-download text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Management Actions -->
+                                        <div class="flex justify-center space-x-3">
+                                            <!-- Share & Move Group -->
+                                            <div class="flex space-x-1 bg-purple-50 rounded-lg p-1">
+                                                <button onclick="showShareModal('{{ file.id }}', '{{ file.name }}', {% if not file.is_public %}true{% else %}false{% endif %}, 'file')" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 bg-white text-purple-600 hover:bg-purple-100"
+                                                        title="Share">
+                                                    <i class="fas fa-share-alt text-xs"></i>
+                                                </button>
+                                                
+                                                <button onclick="showMoveToFolderModal('{{ file.id }}', '{{ file.name }}')" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 bg-white text-indigo-600 hover:bg-indigo-100"
+                                                        title="Move to Folder">
+                                                    <i class="fas fa-folder-plus text-xs"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Action -->
+                                            <div class="bg-red-50 rounded-lg p-1">
+                                                <button onclick="moveToTrash('{{ file.id }}')" 
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 bg-white text-red-600 hover:bg-red-100"
+                                                        title="Move to Trash">
+                                                    <i class="fas fa-trash text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- List View -->
+                <div id="filesListView" class="{% if files_view_mode != 'list' %}hidden{% endif %}">
+                    <div class="overflow-x-auto rounded-2xl">
+                        <table class="min-w-full divide-y divide-gray-200/50">
+                            <thead class="bg-white/80">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-md font-semibold text-gray-700 uppercase tracking-wider">
+                                        File
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-md font-semibold text-gray-700 uppercase tracking-wider">
+                                        Size
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-md font-semibold text-gray-700 uppercase tracking-wider">
+                                        Uploaded
+                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-md font-semibold text-gray-700 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/50 divide-y divide-gray-200/30" id="filesContainer">
+                                {% for file in page_obj %}
+                                <tr class="file-item hover:bg-white/80 transition-all duration-300 group cursor-pointer"
+                                    data-file-id="{{ file.id }}" ondblclick="openFilePreview('{{ file.id }}')">
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br 
+                                                {% if file.file_type == '.pdf' %}from-red-400 to-red-600
+                                                {% elif file.file_type in '.doc,.docx' %}from-blue-400 to-blue-600
+                                                {% elif file.file_type in '.xls,.xlsx' %}from-green-400 to-green-600
+                                                {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}from-purple-400 to-purple-600
+                                                {% elif file.file_type in '.mp4,.avi,.mov' %}from-orange-400 to-orange-600
+                                                {% elif file.file_type in '.mp3,.wav' %}from-yellow-400 to-yellow-600
+                                                {% elif file.file_type in '.zip,.rar,.7z' %}from-gray-400 to-gray-600
+                                                {% else %}from-gray-400 to-gray-600{% endif %} 
+                                                flex items-center justify-center shadow-md">
+                                                <i class="fas 
+                                                    {% if file.file_type == '.pdf' %}fa-file-pdf
+                                                    {% elif file.file_type in '.doc,.docx' %}fa-file-word
+                                                    {% elif file.file_type in '.xls,.xlsx' %}fa-file-excel
+                                                    {% elif file.file_type in '.jpg,.jpeg,.png,.gif,.bmp' %}fa-file-image
+                                                    {% elif file.file_type in '.mp4,.avi,.mov' %}fa-file-video
+                                                    {% elif file.file_type in '.mp3,.wav' %}fa-file-audio
+                                                    {% elif file.file_type in '.zip,.rar,.7z' %}fa-file-archive
+                                                    {% else %}fa-file{% endif %} 
+                                                    text-white text-sm">
+                                                </i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center space-x-2 mb-1">
+                                                    <span class="file-name text-sm font-semibold text-gray-900 truncate max-w-xs group-hover:text-blue-600 transition-colors">
+                                                        {{ file.name }}
+                                                    </span>
+                                                    <div class="flex space-x-1">
+                                                        {% if file.is_starred %}
+                                                        <span class="text-yellow-500" title="Starred">
+                                                            <i class="fas fa-star text-sm"></i>
+                                                        </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <span class="file-size text-sm font-semibold text-gray-700">{{ file.size|filesizeformat }}</span>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <span class="file-uploaded text-sm text-gray-700">{{ file.uploaded_at|date:"M d, Y" }}</span>
+                                    </td>
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            <!-- Star Button -->
+                                            <button onclick="toggleFileStar('{{ file.id }}', this)" 
+                                                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-110 group {% if file.is_starred %}bg-yellow-100 text-yellow-600 hover:bg-yellow-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                    title="{% if file.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+                                                <i class="fas fa-star group-hover:animate-pulse"></i>
+                                            </button>
+                                            
+                                            <!-- Public/Private Toggle -->
+                                            <button onclick="toggleFileVisibility('{{ file.id }}', this)" 
+                                                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-110 group
+                                                        {% if file.is_public %}bg-green-100 text-green-600 hover:bg-green-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+                                                    title="{% if file.is_public %}Make Private{% else %}Make Public{% endif %}">
+                                                <i class="fas {% if file.is_public %}fa-globe-americas{% else %}fa-lock{% endif %} group-hover:animate-pulse"></i>
+                                            </button>
+                                            
+                                            <!-- Preview Button -->
+                                            <button onclick="window.open('{% url 'preview_file' file.id %}', '_blank')" 
+                                                   class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-all duration-200 transform hover:scale-110 group"
+                                                   title="Preview">
+                                                <i class="fas fa-eye group-hover:animate-pulse"></i>
+                                            </button>
+                                            
+                                            <!-- Download Button -->
+                                            <button onclick="downloadFile('{{ file.id }}', this)" 
+                                                    class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 hover:bg-green-200 transition-all duration-200 transform hover:scale-110 group"
+                                                    title="Download">
+                                                <i class="fas fa-download group-hover:animate-bounce"></i>
+                                            </button>
+                                            
+                                            <!-- Share Button -->
+                                            <button onclick="showShareModal('{{ file.id }}', '{{ file.name }}', {% if not file.is_public %}true{% else %}false{% endif %}, 'file')" 
+                                                    class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 hover:bg-purple-200 transition-all duration-200 transform hover:scale-110 group"
+                                                    title="Share">
+                                                <i class="fas fa-share-alt group-hover:animate-pulse"></i>
+                                            </button>
+                                            
+                                            <!-- Move to Folder Button -->
+                                            <button onclick="showMoveToFolderModal('{{ file.id }}', '{{ file.name }}')" 
+                                                    class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 hover:bg-indigo-200 transition-all duration-200 transform hover:scale-110 group"
+                                                    title="Move to Folder">
+                                                <i class="fas fa-folder-plus group-hover:animate-pulse"></i>
+                                            </button>
+                                            
+                                            <!-- Move to Trash -->
+                                            <button onclick="moveToTrash('{{ file.id }}')" 
+                                                    class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110 group"
+                                                    title="Move to Trash">
+                                                <i class="fas fa-trash group-hover:animate-pulse"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PAGINATION CONTROLS -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                    <!-- Page Info -->
+                    <div class="text-sm text-gray-600">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </div>
+                    
+                    <!-- Pagination Buttons -->
+                    <div class="flex items-center space-x-2">
+                        <!-- First Page -->
+                        {% if page_obj.has_previous %}
+                        <a href="?page=1{% if file_type_filter %}&file_type={{ file_type_filter }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                           class="px-3 py-2 bg-white/80 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                        {% else %}
+                        <span class="px-3 py-2 bg-gray-100 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-angle-double-left"></i>
+                        </span>
+                        {% endif %}
+
+                        <!-- Previous Page -->
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if file_type_filter %}&file_type={{ file_type_filter }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                           class="px-3 py-2 bg-white/80 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                        {% else %}
+                        <span class="px-3 py-2 bg-gray-100 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-angle-left"></i>
+                        </span>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <span class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md transform scale-105">
+                                {{ num }}
+                            </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if file_type_filter %}&file_type={{ file_type_filter }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="px-4 py-2 bg-white/80 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-md">
+                                {{ num }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Next Page -->
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if file_type_filter %}&file_type={{ file_type_filter }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                           class="px-3 py-2 bg-white/80 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                        {% else %}
+                        <span class="px-3 py-2 bg-gray-100 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-angle-right"></i>
+                        </span>
+                        {% endif %}
+
+                        <!-- Last Page -->
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if file_type_filter %}&file_type={{ file_type_filter }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                           class="px-3 py-2 bg-white/80 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                        {% else %}
+                        <span class="px-3 py-2 bg-gray-100 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-angle-double-right"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Items Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">Show:</span>
+                        <select onchange="changeItemsPerPage(this.value)" 
+                                class="px-2 py-1 bg-white/80 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            <option value="12" selected>12</option>
+                            <option value="24">24</option>
+                            <option value="48">48</option>
+                            <option value="96">96</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- END PAGINATION CONTROLS -->
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-16">
+                    <div class="floating mb-6">
+                        <i class="fas fa-folder-open text-8xl text-gray-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-700 mb-4">
+                        {% if current_folder %}No files in this folder{% else %}No files yet{% endif %}
+                    </h3>
+                    <p class="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                        {% if current_folder %}
+                            Files you move to this folder will appear here.
+                        {% else %}
+                            Upload your first file to get started with your cloud storage journey.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'dashboard' %}" 
+                       class="btn-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload Files</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Modals -->
+{% include 'modals/create_folder_modal.html' %}
+{% include 'modals/share_modal.html' %}
+
+<!-- Move to Folder Modal -->
+<div id="moveToFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal-backdrop">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-300 scale-95 hover:scale-100">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Move File to Folder</h3>
+            <button onclick="hideMoveToFolderModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-600 mb-2">Move file: <span id="moveFileName" class="font-semibold text-gray-800"></span></p>
+            <input type="hidden" id="moveFileId">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Folder</label>
+                <select id="folderSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Root Folder</option>
+                    {% for folder in all_folders %}
+                    <option value="{{ folder.id }}">{{ folder.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="hideMoveToFolderModal()" 
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                Cancel
+            </button>
+            <button id="moveFileBtn" onclick="moveFileToFolder()"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                <i class="fas fa-folder-plus"></i>
+                <span>Move File</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Folder Modal -->
+<div id="createFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal-backdrop">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-300 scale-95 hover:scale-100">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Create New Folder</h3>
+            <button onclick="hideCreateFolderModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <label for="folderNameInput" class="block text-sm font-medium text-gray-700 mb-2">Folder Name</label>
+            <input type="text" id="folderNameInput" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Enter folder name">
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="hideCreateFolderModal()" 
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                Cancel
+            </button>
+            <button id="createFolderSubmit" onclick="createFolder()"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                <i class="fas fa-folder-plus"></i>
+                <span>Create Folder</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Filter functionality
+    function applyFilters() {
+        const fileTypeFilter = document.getElementById('fileTypeFilter').value;
+        const dateFilter = document.getElementById('dateFilter').value;
+        
+        const params = new URLSearchParams();
+        if (fileTypeFilter) params.set('file_type', fileTypeFilter);
+        if (dateFilter) params.set('date_filter', dateFilter);
+        
+        window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    }
+
+    function clearFilters() {
+        window.location.href = window.location.pathname;
+    }
+
+    // Search functionality
+    function performSearch() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const clearBtn = document.getElementById('clearSearchBtn');
+        
+        if (searchTerm.length > 0) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+        
+        const folders = document.querySelectorAll('.folder-item');
+        folders.forEach(folder => {
+            const folderName = folder.querySelector('h3').textContent.toLowerCase();
+            folder.style.display = folderName.includes(searchTerm) ? '' : 'none';
+        });
+        
+        const files = document.querySelectorAll('.file-item');
+        files.forEach(file => {
+            const fileName = file.querySelector('.file-name').textContent.toLowerCase();
+            file.style.display = fileName.includes(searchTerm) ? '' : 'none';
+        });
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearchBtn').classList.add('hidden');
+        performSearch();
+    }
+
+    // Files view mode toggle
+    function toggleFilesViewMode(mode) {
+        const gridView = document.getElementById('filesGridView');
+        const listView = document.getElementById('filesListView');
+        const gridBtn = document.querySelector('button[onclick="toggleFilesViewMode(\'grid\')"]');
+        const listBtn = document.querySelector('button[onclick="toggleFilesViewMode(\'list\')"]');
+        
+        if (mode === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('bg-blue-500', 'text-white');
+            gridBtn.classList.remove('bg-transparent', 'text-gray-600');
+            listBtn.classList.remove('bg-blue-500', 'text-white');
+            listBtn.classList.add('bg-transparent', 'text-gray-600');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.classList.add('bg-blue-500', 'text-white');
+            listBtn.classList.remove('bg-transparent', 'text-gray-600');
+            gridBtn.classList.remove('bg-blue-500', 'text-white');
+            gridBtn.classList.add('bg-transparent', 'text-gray-600');
+        }
+        
+        localStorage.setItem('files_view_mode', mode);
+    }
+
+    // Items per page functionality
+    function changeItemsPerPage(perPage) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('per_page', perPage);
+        currentUrl.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = currentUrl.toString();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedViewMode = localStorage.getItem('files_view_mode') || 'grid';
+        toggleFilesViewMode(savedViewMode);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (currentModal === 'createFolder' && document.activeElement.id === 'folderNameInput') {
+                    createFolder();
+                }
+            }
+        });
+    });
+
+    // File preview function
+    function openFilePreview(fileId) {
+        if (fileId && fileId !== 'undefined') {
+            const previewUrl = `/file/preview/${fileId}/`;
+            window.open(previewUrl, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    // Move to Folder functionality
+    function showMoveToFolderModal(fileId, fileName) {
+        currentModal = 'moveToFolder';
+        const modal = document.getElementById('moveToFolderModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('moveFileName').textContent = fileName;
+            document.getElementById('moveFileId').value = fileId;
+        }
+    }
+
+    function hideMoveToFolderModal() {
+        const modal = document.getElementById('moveToFolderModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        currentModal = null;
+    }
+
+    function moveFileToFolder() {
+        const fileId = document.getElementById('moveFileId').value;
+        const folderId = document.getElementById('folderSelect').value;
+        
+        console.log(`📁 Moving file ${fileId} to folder ${folderId}`);
+        
+        const submitBtn = document.getElementById('moveFileBtn');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Moving...';
+        submitBtn.disabled = true;
+
+        const requestData = { 
+            folder: folderId || null 
+        };
+        
+        console.log('Request data:', requestData);
+
+        fetch(`/file/move/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json().then(data => {
+                console.log('Response data:', data);
+                return { ok: response.ok, data };
+            });
+        })
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
+                console.log('✅ File move successful:', data.message);
+                showNotification(data.message || 'File moved successfully!', 'success');
+                hideMoveToFolderModal();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                console.error('❌ File move failed:', data.error);
+                throw new Error(data.error || 'Failed to move file');
+            }
+        })
+        .catch(error => {
+            console.error('Move file error:', error);
+            showNotification('Error: ' + error.message, 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+
+    // Star functionality
+    function toggleFileStar(fileId, element) {
+        const starBtn = element;
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        starBtn.disabled = true;
+        
+        fetch(`/file/star/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.is_starred) {
+                    starBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.classList.add('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.title = 'Remove from starred';
+                    showNotification('File added to starred!', 'success');
+                } else {
+                    starBtn.classList.remove('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.title = 'Add to starred';
+                    showNotification('File removed from starred', 'info');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            starBtn.disabled = false;
+        });
+    }
+
+    function toggleFolderStar(folderId, element) {
+        const starBtn = element;
+        const originalHtml = starBtn.innerHTML;
+        
+        starBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        starBtn.disabled = true;
+        
+        fetch(`/folder/star/${folderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.is_starred) {
+                    starBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.classList.add('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.title = 'Remove from starred';
+                    showNotification('Folder added to starred!', 'success');
+                } else {
+                    starBtn.classList.remove('bg-yellow-100', 'text-yellow-600', 'hover:bg-yellow-200');
+                    starBtn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    starBtn.title = 'Add to starred';
+                    showNotification('Folder removed from starred', 'info');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            starBtn.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            starBtn.disabled = false;
+        });
+    }
+
+    // File visibility toggle
+    function toggleFileVisibility(fileId, element) {
+        const button = element;
+        const originalHtml = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        fetch(`/file/toggle-public/${fileId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                if (data.is_public) {
+                    button.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.classList.add('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.innerHTML = '<i class="fas fa-globe-americas text-xs"></i>';
+                    button.title = 'Make Private';
+                } else {
+                    button.classList.remove('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.innerHTML = '<i class="fas fa-lock text-xs"></i>';
+                    button.title = 'Make Public';
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        });
+    }
+
+    // Folder visibility toggle
+    function toggleFolderVisibility(folderId, element) {
+        const button = element;
+        const originalHtml = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        fetch(`/folder/toggle-public/${folderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                if (data.is_public) {
+                    button.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.classList.add('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.innerHTML = '<i class="fas fa-globe-americas text-xs"></i>';
+                    button.title = 'Make Private';
+                } else {
+                    button.classList.remove('bg-green-100', 'text-green-600', 'hover:bg-green-200');
+                    button.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    button.innerHTML = '<i class="fas fa-lock text-xs"></i>';
+                    button.title = 'Make Public';
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            button.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
+    }
+
+    // Move to trash
+    function moveToTrash(fileId) {
+        if (confirm('Move this file to trash? You can restore it later from the trash.')) {
+            const button = event.target.closest('button');
+            const originalHtml = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+            
+            fetch(`/file/move-to-trash/${fileId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                const fileRow = button.closest('.file-item');
+                if (fileRow) {
+                    fileRow.style.opacity = '0';
+                    fileRow.style.transform = 'translateX(100px)';
+                    setTimeout(() => fileRow.remove(), 500);
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        });
+        }
+    }
+
+    // Download file function
+    function downloadFile(fileId, element = null) {
+        if (element) {
+            const originalHtml = element.innerHTML;
+            element.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            element.disabled = true;
+        }
+        
+        window.location.href = `/files/${fileId}/download/`;
+        
+        if (element) {
+            setTimeout(() => {
+                element.innerHTML = originalHtml;
+                element.disabled = false;
+            }, 2000);
+        }
+    }
+
+    // Modal Management
+    let currentModal = null;
+
+    // Create Folder Modal
+    function showCreateFolderModal() {
+        currentModal = 'createFolder';
+        const modal = document.getElementById('createFolderModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('folderNameInput').focus();
+        }
+    }
+
+    function hideCreateFolderModal() {
+        const modal = document.getElementById('createFolderModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        currentModal = null;
+    }
+
+    function createFolder() {
+        const folderName = document.getElementById('folderNameInput').value.trim();
+        if (!folderName) {
+            showNotification('Please enter a folder name', 'error');
+            return;
+        }
+
+        const submitBtn = document.getElementById('createFolderSubmit');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+
+        fetch('/folder/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: folderName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Folder created successfully!', 'success');
+                hideCreateFolderModal();
+                document.getElementById('folderNameInput').value = '';
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error(data.error || 'Failed to create folder');
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error.message, 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+
+    // Folder delete functionality
+    function moveFolderToTrash(folderId, folderName) {
+        if (confirm(`Move folder "${folderName}" to trash? All files in this folder will also be moved to trash and can be restored later.`)) {
+            const button = event.target.closest('button');
+            const originalHtml = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+            
+            fetch(`/folder/move-to-trash/${folderId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    const folderItem = button.closest('.folder-item');
+                    if (folderItem) {
+                        folderItem.style.opacity = '0';
+                        folderItem.style.transform = 'translateX(100px)';
+                        setTimeout(() => folderItem.remove(), 500);
+                    }
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error: ' + error.message, 'error');
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+            });
+        }
+    }
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+            type === 'warning' ? 'bg-yellow-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+        
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas ${
+                    type === 'success' ? 'fa-check-circle' :
+                    type === 'error' ? 'fa-times-circle' :
+                    type === 'warning' ? 'fa-exclamation-triangle' :
+                    'fa-info-circle'
+                }"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    // Close modals on backdrop click or escape key
+    document.addEventListener('click', function(e) {
+        if (currentModal && e.target.classList.contains('modal-backdrop')) {
+            if (currentModal === 'createFolder') hideCreateFolderModal();
+            if (currentModal === 'moveToFolder') hideMoveToFolderModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && currentModal) {
+            if (currentModal === 'createFolder') hideCreateFolderModal();
+            if (currentModal === 'moveToFolder') hideMoveToFolderModal();
+        }
+    });
+
+
+// Add this to dashboard.html, file_list.html, etc.
+document.addEventListener('DOMContentLoaded', function() {
+    // Periodically check session validity
+    setInterval(() => {
+        const sessionActive = sessionStorage.getItem('cloud_storage_session_active');
+        const isRemembered = sessionStorage.getItem('cloud_storage_remember_me') === 'true';
+        
+        if (!sessionActive && !isRemembered) {
+            // Session expired, redirect to login
+            window.location.href = '/login/?message=session_expired';
+        }
+    }, 30000); // Check every 30 seconds
+});
+
+</script>
+{% endblock %}
+
+
